@@ -58,11 +58,14 @@ actor StdioTransport {
             process.arguments = configuration.arguments
         } else {
             // Use shell to resolve PATH
+            // -i (interactive) sources .zshrc where PATH modifications typically live
+            // -l (login) sources .zprofile/.zlogin
+            // Together they ensure the full user environment is loaded
             process.executableURL = URL(fileURLWithPath: "/bin/zsh")
             let fullCommand = ([command] + configuration.arguments)
                 .map { $0.contains(" ") ? "\"\($0)\"" : $0 }
                 .joined(separator: " ")
-            process.arguments = ["-l", "-c", fullCommand]
+            process.arguments = ["-ilc", fullCommand]
         }
         
         // Set environment variables
