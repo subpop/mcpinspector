@@ -17,8 +17,30 @@ struct ServerConfigListView: View {
         .navigationTitle("Server Configurations")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: { showingAddSheet = true }) {
-                    Label("Add Server", systemImage: "plus")
+                HStack(spacing: 8) {
+                    if let selectedConfig = selectedConfiguration {
+                        if isConnected(to: selectedConfig) {
+                            Button(action: { appState.disconnect() }) {
+                                Label("Stop", systemImage: "stop.fill")
+                            }
+                            .help("Stop \(selectedConfig.name)")
+                        } else {
+                            Button(action: { connectTo(selectedConfig) }) {
+                                Label("Start", systemImage: "play.fill")
+                            }
+                            .help("Start \(selectedConfig.name)")
+                        }
+                    } else {
+                        Button(action: {}) {
+                            Label("Start", systemImage: "play.fill")
+                        }
+                        .disabled(true)
+                        .help("Select a server to start")
+                    }
+                    
+                    Button(action: { showingAddSheet = true }) {
+                        Label("Add Server", systemImage: "plus")
+                    }
                 }
             }
         }
@@ -28,6 +50,11 @@ struct ServerConfigListView: View {
         .sheet(item: $editingConfiguration) { config in
             ServerConfigEditView(mode: .edit(config))
         }
+    }
+    
+    private var selectedConfiguration: ServerConfiguration? {
+        guard let id = selectedConfigId else { return nil }
+        return appState.configurationStore.configurations.first { $0.id == id }
     }
     
     // MARK: - Empty State
@@ -63,9 +90,7 @@ struct ServerConfigListView: View {
                 ServerConfigRow(
                     configuration: config,
                     isConnected: isConnected(to: config),
-                    onEdit: { editingConfiguration = config },
-                    onConnect: { connectTo(config) },
-                    onDisconnect: { appState.disconnect() }
+                    onEdit: { editingConfiguration = config }
                 )
                 .tag(config.id)
             }
@@ -104,8 +129,6 @@ struct ServerConfigRow: View {
     let configuration: ServerConfiguration
     let isConnected: Bool
     let onEdit: () -> Void
-    let onConnect: () -> Void
-    let onDisconnect: () -> Void
     
     var body: some View {
         HStack {
@@ -129,29 +152,11 @@ struct ServerConfigRow: View {
             
             Spacer()
             
-            HStack(spacing: 8) {
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                }
-                .buttonStyle(.borderless)
-                .help("Edit configuration")
-                
-                if isConnected {
-                    Button(action: onDisconnect) {
-                        Image(systemName: "stop.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundColor(.red)
-                    .help("Disconnect")
-                } else {
-                    Button(action: onConnect) {
-                        Image(systemName: "play.circle")
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundColor(.green)
-                    .help("Connect")
-                }
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
             }
+            .buttonStyle(.borderless)
+            .help("Edit configuration")
         }
         .padding(.vertical, 4)
     }
