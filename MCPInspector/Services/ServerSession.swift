@@ -4,7 +4,7 @@ import Combine
 /// Encapsulates all per-server connection state: client, logs, tools, prompts, resources.
 /// Multiple ServerSession instances can exist simultaneously for concurrent server connections.
 @MainActor
-class ServerSession: ObservableObject, Identifiable {
+class ServerSession: ObservableObject, @MainActor Identifiable {
     let configuration: ServerConfiguration
     
     var id: UUID { configuration.id }
@@ -136,3 +136,4 @@ class ServerSession: ObservableObject, Identifiable {
         pendingElicitation = nil
     }
 }
+
