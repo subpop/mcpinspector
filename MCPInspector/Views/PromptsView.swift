@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct PromptsView: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @State private var selectedPrompt: MCPPrompt?
     @State private var searchText = ""
     
     private var filteredPrompts: [MCPPrompt] {
         if searchText.isEmpty {
-            return appState.prompts
+            return session.prompts
         }
-        return appState.prompts.filter {
+        return session.prompts.filter {
             $0.name.localizedCaseInsensitiveContains(searchText) ||
             ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false)
         }
@@ -17,15 +17,12 @@ struct PromptsView: View {
     
     var body: some View {
         HSplitView {
-            // Prompts List
             promptsList
                 .frame(minWidth: 250, maxWidth: 350)
             
-            // Prompt Detail
             promptDetail
                 .frame(minWidth: 400)
         }
-        .navigationTitle("Prompts")
         .searchable(text: $searchText, prompt: "Search prompts...")
     }
     
@@ -34,7 +31,7 @@ struct PromptsView: View {
     private var promptsList: some View {
         List(selection: $selectedPrompt) {
             if filteredPrompts.isEmpty {
-                if appState.prompts.isEmpty {
+                if session.prompts.isEmpty {
                     Text("No prompts available")
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -62,7 +59,6 @@ struct PromptsView: View {
         if let prompt = selectedPrompt {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Header
                     VStack(alignment: .leading, spacing: 4) {
                         Text(prompt.name)
                             .font(.title2)
@@ -77,7 +73,6 @@ struct PromptsView: View {
                     
                     Divider()
                     
-                    // Arguments
                     if let arguments = prompt.arguments, !arguments.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Arguments")
@@ -182,6 +177,5 @@ struct PromptArgumentRow: View {
 }
 
 #Preview {
-    PromptsView()
-        .environmentObject(AppState())
+    PromptsView(session: ServerSession(configuration: .sample))
 }

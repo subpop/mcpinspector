@@ -4,7 +4,7 @@ import SwiftUI
 /// The form fields are dynamically generated from the JSON Schema provided
 /// in the `requestedSchema` of the elicitation params.
 struct ElicitationSheet: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @Environment(\.dismiss) private var dismiss
     
     let elicitation: PendingElicitation
@@ -41,12 +41,10 @@ struct ElicitationSheet: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Server message
                     messageSection
                     
                     Divider()
                     
-                    // Form fields
                     formFields
                 }
                 .padding()
@@ -122,7 +120,6 @@ struct ElicitationSheet: View {
         let isRequired = elicitation.requiredFields.contains(name)
         
         return VStack(alignment: .leading, spacing: 6) {
-            // Field label
             HStack(spacing: 4) {
                 Text(title)
                     .fontWeight(.medium)
@@ -148,10 +145,8 @@ struct ElicitationSheet: View {
                     .foregroundColor(.secondary)
             }
             
-            // Field input
             fieldInput(name: name, type: type, property: property)
             
-            // Validation error
             if let error = validationErrors[name] {
                 Text(error)
                     .font(.caption)
@@ -178,7 +173,6 @@ struct ElicitationSheet: View {
             
         default: // "string"
             if let enumValues = property["enum"]?.arrayValue {
-                // Enum / dropdown
                 let enumNames = property["enumNames"]?.arrayValue?.compactMap { $0.stringValue }
                 Picker("", selection: stringBinding(for: name, type: .string(""))) {
                     Text("Select...").tag("")
@@ -197,7 +191,6 @@ struct ElicitationSheet: View {
                 let isLong = maxLength == nil || maxLength! > 200
                 
                 if isLong && property["enum"] == nil {
-                    // Use multi-line for potentially long text
                     TextField("Enter value...", text: stringBinding(for: name, type: .string("")), axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(1...5)
@@ -254,7 +247,6 @@ struct ElicitationSheet: View {
                 }
             },
             set: { newValue in
-                // Clear validation error on edit
                 validationErrors[name] = nil
                 switch type {
                 case .number:
@@ -297,7 +289,7 @@ struct ElicitationSheet: View {
                 } else {
                     fieldValues[key] = .number("")
                 }
-            default: // string
+            default:
                 let defaultValue = prop["default"]?.stringValue ?? ""
                 fieldValues[key] = .string(defaultValue)
             }
@@ -318,7 +310,6 @@ struct ElicitationSheet: View {
             
             switch type {
             case "boolean":
-                // Booleans are always valid (they have a value)
                 break
             case "number", "integer":
                 if case .number(let s) = fieldValues[key], !s.isEmpty {
@@ -335,7 +326,6 @@ struct ElicitationSheet: View {
                 }
             default:
                 if case .string(let s) = fieldValues[key], !s.isEmpty {
-                    // Check minLength
                     if let minLength = prop["minLength"]?.intValue, s.count < minLength {
                         validationErrors[key] = "Must be at least \(minLength) characters"
                         isValid = false
@@ -347,7 +337,6 @@ struct ElicitationSheet: View {
             }
         }
         
-        // Validate non-required fields that have values
         for (key, value) in fieldValues {
             guard validationErrors[key] == nil,
                   let prop = properties[key] else { continue }
@@ -401,14 +390,14 @@ struct ElicitationSheet: View {
         }
         
         Task {
-            await appState.respondToElicitation(action: .accept, content: content)
+            await session.respondToElicitation(action: .accept, content: content)
             dismiss()
         }
     }
     
     private func declineElicitation() {
         Task {
-            await appState.respondToElicitation(action: .decline)
+            await session.respondToElicitation(action: .decline)
             dismiss()
         }
     }
@@ -450,6 +439,5 @@ struct ElicitationSheet: View {
         ])
     )
     
-    return ElicitationSheet(elicitation: elicitation)
-        .environmentObject(AppState())
+    return ElicitationSheet(session: ServerSession(configuration: .sample), elicitation: elicitation)
 }

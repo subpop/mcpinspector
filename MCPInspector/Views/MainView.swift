@@ -2,39 +2,9 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject private var appState: AppState
-    @State private var selectedSection: SidebarSection? = .servers
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    
-    enum SidebarSection: String, CaseIterable, Identifiable {
-        case servers = "Servers"
-        case connection = "Connection"
-        case tools = "Tools"
-        case prompts = "Prompts"
-        case resources = "Resources"
-        case logs = "Logs"
-        
-        var id: String { rawValue }
-        
-        var icon: String {
-            switch self {
-            case .servers: return "server.rack"
-            case .connection: return "network"
-            case .tools: return "wrench.and.screwdriver"
-            case .prompts: return "text.bubble"
-            case .resources: return "doc.text"
-            case .logs: return "list.bullet.rectangle"
-            }
-        }
-        
-        var requiresConnection: Bool {
-            switch self {
-            case .servers, .connection, .logs:
-                return false
-            case .tools, .prompts, .resources:
-                return true
-            }
-        }
-    }
+    @State private var showingAddSheet = false
+    @State private var editingConfiguration: ServerConfiguration?
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -43,126 +13,146 @@ struct MainView: View {
             detailView
         }
         .navigationSplitViewStyle(.balanced)
+        .sheet(isPresented: $showingAddSheet) {
+            ServerConfigEditView(mode: .add)
+        }
+        .sheet(item: $editingConfiguration) { config in
+            ServerConfigEditView(mode: .edit(config))
+        }
     }
     
     // MARK: - Sidebar
     
     private var sidebar: some View {
         VStack(spacing: 0) {
-            List(selection: $selectedSection) {
-                Section("Configuration") {
-                    NavigationLink(value: SidebarSection.servers) {
-                        Label("Servers", systemImage: SidebarSection.servers.icon)
-                    }
-                }
-                
-                Section("Inspector") {
-                    ForEach([SidebarSection.connection, .tools, .prompts, .resources], id: \.self) { section in
-                        NavigationLink(value: section) {
-                            Label(section.rawValue, systemImage: section.icon)
-                        }
-                        .disabled(section.requiresConnection && !isConnected)
-                    }
-                }
-                
-                Section("Debug") {
-                    NavigationLink(value: SidebarSection.logs) {
-                        Label("Logs", systemImage: SidebarSection.logs.icon)
-                            .badge(appState.logStore.entries.count)
-                    }
-                }
+            if appState.configurationStore.configurations.isEmpty {
+                emptyServerList
+            } else {
+                serverList
             }
-            .listStyle(.sidebar)
             
             Divider()
             
-            // Status bar at bottom of sidebar
-            connectionStatusBadge
+            runningServersSummary
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(.bar)
         }
         .navigationTitle("MCP Inspector")
-        .frame(minWidth: 200)
+        .frame(minWidth: 220)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { showingAddSheet = true }) {
+                    Label("Add Server", systemImage: "plus")
+                }
+            }
+        }
+    }
+    
+    private var serverList: some View {
+        List(selection: $appState.selectedServerId) {
+            ForEach(appState.configurationStore.configurations) { config in
+                ServerSidebarRow(
+                    configuration: config,
+                    connectionState: appState.connectionState(for: config.id)
+                )
+                .tag(config.id)
+                .contextMenu {
+                    serverContextMenu(for: config)
+                }
+            }
+            .onDelete(perform: deleteConfigurations)
+        }
+        .listStyle(.sidebar)
+    }
+    
+    private var emptyServerList: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            
+            Image(systemName: "server.rack")
+                .font(.system(size: 36))
+                .foregroundColor(.secondary)
+            
+            Text("No Servers")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Text("Add a server to get started.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button(action: { showingAddSheet = true }) {
+                Label("Add Server", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    @ViewBuilder
+    private func serverContextMenu(for config: ServerConfiguration) -> some View {
+        let state = appState.connectionState(for: config.id)
+        
+        if state == .connected {
+            Button("Stop") {
+                appState.stopSession(for: config)
+            }
+        } else if state == .connecting {
+            Button("Stop") {
+                appState.stopSession(for: config)
+            }
+        } else {
+            Button("Start") {
+                appState.startSession(for: config)
+            }
+        }
+        
+        Divider()
+        
+        Button("Edit...") {
+            editingConfiguration = config
+        }
+        
+        Button("Delete", role: .destructive) {
+            deleteServer(config)
+        }
     }
     
     // MARK: - Detail View
     
     @ViewBuilder
     private var detailView: some View {
-        switch selectedSection {
-        case .servers:
-            ServerConfigListView()
-        case .connection:
-            ConnectionView()
-        case .tools:
-            if isConnected {
-                ToolsView()
-            } else {
-                notConnectedView
-            }
-        case .prompts:
-            if isConnected {
-                PromptsView()
-            } else {
-                notConnectedView
-            }
-        case .resources:
-            if isConnected {
-                ResourcesView()
-            } else {
-                notConnectedView
-            }
-        case .logs:
-            LogView()
-        case .none:
+        if let serverId = appState.selectedServerId,
+           let config = appState.configurationStore.configuration(withId: serverId) {
+            let session = appState.session(for: config)
+            ServerDetailView(session: session, onEdit: {
+                editingConfiguration = config
+            })
+        } else {
             welcomeView
         }
     }
     
-    // MARK: - Helper Views
+    // MARK: - Running Servers Summary
     
-    private var isConnected: Bool {
-        appState.connectionState == .connected
-    }
-    
-    private var connectionStatusBadge: some View {
-        HStack(spacing: 4) {
+    private var runningServersSummary: some View {
+        let runningCount = appState.sessions.values.filter { $0.isConnected }.count
+        return HStack(spacing: 4) {
             Circle()
-                .fill(connectionStatusColor)
+                .fill(runningCount > 0 ? .green : .gray)
                 .frame(width: 8, height: 8)
-            Text(connectionStatusText)
+            Text(runningCount > 0 ? "\(runningCount) running" : "No servers running")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
     }
     
-    private var connectionStatusColor: Color {
-        switch appState.connectionState {
-        case .connected:
-            return .green
-        case .connecting:
-            return .orange
-        case .disconnected:
-            return .gray
-        case .error:
-            return .red
-        }
-    }
-    
-    private var connectionStatusText: String {
-        switch appState.connectionState {
-        case .connected:
-            return appState.selectedServer?.name ?? "Connected"
-        case .connecting:
-            return "Connecting..."
-        case .disconnected:
-            return "Disconnected"
-        case .error(let message):
-            return "Error: \(message.prefix(20))..."
-        }
-    }
+    // MARK: - Welcome View
     
     private var welcomeView: some View {
         VStack(spacing: 16) {
@@ -174,7 +164,7 @@ struct MainView: View {
                 .font(.largeTitle)
                 .fontWeight(.semibold)
             
-            Text("Select a section from the sidebar to get started.")
+            Text("Select a server from the sidebar to get started.")
                 .foregroundColor(.secondary)
             
             if appState.configurationStore.configurations.isEmpty {
@@ -186,7 +176,7 @@ struct MainView: View {
                     .foregroundColor(.secondary)
                 
                 Button("Add Server") {
-                    selectedSection = .servers
+                    showingAddSheet = true
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -194,25 +184,58 @@ struct MainView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    private var notConnectedView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "network.slash")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-            
-            Text("Not Connected")
-                .font(.title2)
-                .fontWeight(.medium)
-            
-            Text("Connect to an MCP server to view this section.")
-                .foregroundColor(.secondary)
-            
-            Button("Go to Connection") {
-                selectedSection = .connection
-            }
-            .buttonStyle(.borderedProminent)
+    // MARK: - Actions
+    
+    private func deleteConfigurations(at offsets: IndexSet) {
+        for index in offsets {
+            let config = appState.configurationStore.configurations[index]
+            appState.removeSession(for: config.id)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        appState.configurationStore.delete(at: offsets)
+    }
+    
+    private func deleteServer(_ config: ServerConfiguration) {
+        if appState.selectedServerId == config.id {
+            appState.selectedServerId = nil
+        }
+        appState.removeSession(for: config.id)
+        appState.configurationStore.delete(config)
+    }
+}
+
+// MARK: - Server Sidebar Row
+
+struct ServerSidebarRow: View {
+    let configuration: ServerConfiguration
+    let connectionState: ServerSession.ConnectionState
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(configuration.name)
+                    .font(.body)
+                    .lineLimit(1)
+                
+                Text(configuration.commandDisplay)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+    
+    private var statusColor: Color {
+        switch connectionState {
+        case .connected: return .green
+        case .connecting: return .orange
+        case .disconnected: return .gray
+        case .error: return .red
+        }
     }
 }
 

@@ -9,13 +9,11 @@ struct PlainTextEditor: NSViewRepresentable {
         let scrollView = NSTextView.scrollableTextView()
         let textView = scrollView.documentView as! NSTextView
         
-        // Disable smart quotes and other substitutions
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
         
-        // Configure for code/JSON editing
         textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
         textView.isRichText = false
         textView.allowsUndo = true
@@ -52,7 +50,7 @@ struct PlainTextEditor: NSViewRepresentable {
 }
 
 struct ToolInvocationSheet: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @Environment(\.dismiss) private var dismiss
     
     let tool: MCPTool
@@ -96,12 +94,10 @@ struct ToolInvocationSheet: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             header
             
             Divider()
             
-            // Content
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if tool.hasParameters {
@@ -127,15 +123,14 @@ struct ToolInvocationSheet: View {
             
             Divider()
             
-            // Footer
             footer
         }
         .frame(minWidth: 500, minHeight: 400, maxHeight: 700)
         .onAppear {
             initializeParameters()
         }
-        .sheet(item: $appState.pendingElicitation) { elicitation in
-            ElicitationSheet(elicitation: elicitation)
+        .sheet(item: $session.pendingElicitation) { elicitation in
+            ElicitationSheet(session: session, elicitation: elicitation)
         }
     }
     
@@ -242,7 +237,7 @@ struct ToolInvocationSheet: View {
                 .frame(height: 80)
                 .border(Color.secondary.opacity(0.3))
             
-        default: // string
+        default:
             if let enumValues = property["enum"]?.arrayValue {
                 Picker("", selection: stringBinding(for: name, type: .string(""))) {
                     Text("Select...").tag("")
@@ -450,7 +445,6 @@ struct ToolInvocationSheet: View {
             }
         }
         
-        // Initialize raw JSON with empty object
         rawJSON = "{}"
     }
     
@@ -461,7 +455,7 @@ struct ToolInvocationSheet: View {
         Task {
             do {
                 let arguments = buildArguments()
-                let toolResult = try await appState.callTool(name: tool.name, arguments: arguments)
+                let toolResult = try await session.callTool(name: tool.name, arguments: arguments)
                 result = .success(toolResult)
             } catch {
                 result = .error(error.localizedDescription)
@@ -509,6 +503,5 @@ struct ToolInvocationSheet: View {
         ])
     )
     
-    return ToolInvocationSheet(tool: sampleTool)
-        .environmentObject(AppState())
+    return ToolInvocationSheet(session: ServerSession(configuration: .sample), tool: sampleTool)
 }

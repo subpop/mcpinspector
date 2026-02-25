@@ -17,7 +17,7 @@ actor StdioTransport {
     private let onStderr: (@Sendable (String) -> Void)?
     
     /// Callback for incoming server-to-client requests (method, id, params)
-    private let onServerRequest: (@Sendable (String, RequestID, JSONValue?) -> Void)?
+    private var onServerRequest: (@Sendable (String, RequestID, JSONValue?) -> Void)?
     
     /// Collected stderr output for error reporting
     private var stderrBuffer: String = ""
@@ -30,6 +30,11 @@ actor StdioTransport {
         self.configuration = configuration
         self.onStderr = onStderr
         self.onServerRequest = onServerRequest
+    }
+    
+    /// Set the server request handler (allows wiring after init to avoid capture issues)
+    func setServerRequestHandler(_ handler: @escaping @Sendable (String, RequestID, JSONValue?) -> Void) {
+        self.onServerRequest = handler
     }
     
     /// Get collected stderr output

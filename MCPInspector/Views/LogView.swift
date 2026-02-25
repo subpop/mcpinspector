@@ -2,14 +2,14 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct LogView: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @State private var selectedEntry: LogEntry?
     @State private var filterDirection: LogEntry.Direction?
     @State private var filterText = ""
     @State private var showErrorsOnly = false
     
     private var filteredEntries: [LogEntry] {
-        var entries = appState.logStore.entries
+        var entries = session.logStore.entries
         
         if let direction = filterDirection {
             entries = entries.filter { $0.direction == direction }
@@ -26,20 +26,17 @@ struct LogView: View {
             }
         }
         
-        return entries.reversed() // Most recent first
+        return entries.reversed()
     }
     
     var body: some View {
         HSplitView {
-            // Log List
             logList
                 .frame(minWidth: 300, maxWidth: 450)
             
-            // Log Detail
             logDetail
                 .frame(minWidth: 400)
         }
-        .navigationTitle("Logs")
         .toolbar {
             ToolbarItemGroup {
                 filterMenu
@@ -47,12 +44,12 @@ struct LogView: View {
                 Button(action: saveLogs) {
                     Label("Save", systemImage: "square.and.arrow.down")
                 }
-                .disabled(appState.logStore.entries.isEmpty)
+                .disabled(session.logStore.entries.isEmpty)
                 
-                Button(action: { appState.logStore.clear() }) {
+                Button(action: { session.logStore.clear() }) {
                     Label("Clear", systemImage: "trash")
                 }
-                .disabled(appState.logStore.entries.isEmpty)
+                .disabled(session.logStore.entries.isEmpty)
             }
         }
     }
@@ -61,7 +58,6 @@ struct LogView: View {
     
     private var logList: some View {
         VStack(spacing: 0) {
-            // Search
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
@@ -101,11 +97,11 @@ struct LogView: View {
                 .font(.system(size: 32))
                 .foregroundColor(.secondary)
             
-            if appState.logStore.entries.isEmpty {
+            if session.logStore.entries.isEmpty {
                 Text("No logs yet")
                     .foregroundColor(.secondary)
                 
-                Text("Connect to a server and perform actions to see logs here.")
+                Text("Perform actions to see logs here.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -125,7 +121,6 @@ struct LogView: View {
         if let entry = selectedEntry {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Header
                     HStack {
                         directionBadge(entry.direction)
                         
@@ -147,7 +142,6 @@ struct LogView: View {
                     
                     Divider()
                     
-                    // Content
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Content")
@@ -265,10 +259,9 @@ struct LogView: View {
             guard response == .OK, let url = savePanel.url else { return }
             
             do {
-                let data = try appState.logStore.exportToJSON()
+                let data = try session.logStore.exportToJSON()
                 try data.write(to: url)
             } catch {
-                // Show error alert
                 let alert = NSAlert()
                 alert.messageText = "Failed to Save Logs"
                 alert.informativeText = error.localizedDescription
@@ -300,19 +293,16 @@ struct LogEntryRow: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            // Direction indicator
             Text(entry.direction.symbol)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(directionColor)
                 .frame(width: 16)
             
-            // Timestamp
             Text(entry.formattedTimestamp)
                 .font(.system(.caption2, design: .monospaced))
                 .foregroundColor(.secondary)
                 .frame(width: 80, alignment: .leading)
             
-            // Method
             Text(entry.method)
                 .font(.system(.caption, design: .monospaced))
                 .fontWeight(.medium)
@@ -320,7 +310,6 @@ struct LogEntryRow: View {
             
             Spacer()
             
-            // Error indicator
             if entry.isError {
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundColor(.orange)
@@ -332,6 +321,5 @@ struct LogEntryRow: View {
 }
 
 #Preview {
-    LogView()
-        .environmentObject(AppState())
+    LogView(session: ServerSession(configuration: .sample))
 }

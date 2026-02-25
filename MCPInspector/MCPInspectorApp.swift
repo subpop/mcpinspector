@@ -11,7 +11,7 @@ struct MCPInspectorApp: App {
                 .environmentObject(appState)
         }
         .windowStyle(.automatic)
-        .defaultSize(width: 800, height: 600)
+        .defaultSize(width: 700, height: 650)
 
         Settings {
             SettingsView()
@@ -23,136 +23,67 @@ struct MCPInspectorApp: App {
 @MainActor
 class AppState: ObservableObject {
     @Published var configurationStore = ConfigurationStore()
-    @Published var mcpClient: MCPClient?
-    @Published var logStore = LogStore()
-    @Published var selectedServer: ServerConfiguration?
-    @Published var connectionState: ConnectionState = .disconnected
-    
-    // Server capabilities (populated after connection)
-    @Published var serverInfo: MCPServerInfo?
-    @Published var serverInstructions: String?
-    @Published var tools: [MCPTool] = []
-    @Published var prompts: [MCPPrompt] = []
-    @Published var resources: [MCPResource] = []
-    
-    // Elicitation state
-    @Published var pendingElicitation: PendingElicitation?
+    @Published var selectedServerId: UUID?
+    @Published var sessions: [UUID: ServerSession] = [:]
     
     private var cancellables = Set<AnyCancellable>()
     
-    enum ConnectionState: Equatable {
-        case disconnected
-        case connecting
-        case connected
-        case error(String)
-    }
-    
     init() {
-        // Forward objectWillChange from nested ObservableObjects to trigger view updates
         configurationStore.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+    }
+    
+    /// The currently selected session (nil if no server is selected or no session exists yet)
+    var selectedSession: ServerSession? {
+        guard let id = selectedServerId else { return nil }
+        return sessions[id]
+    }
+    
+    /// Get or create a session for the given configuration
+    func session(for configuration: ServerConfiguration) -> ServerSession {
+        if let existing = sessions[configuration.id] {
+            return existing
+        }
+        let session = ServerSession(configuration: configuration)
+        sessions[configuration.id] = session
         
-        logStore.objectWillChange
+        session.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+        
+        return session
     }
     
-    func connect(to server: ServerConfiguration) async {
-        connectionState = .connecting
-        selectedServer = server
-        
-        // Reset state
-        serverInfo = nil
-        serverInstructions = nil
-        tools = []
-        prompts = []
-        resources = []
-        
-        do {
-            let client = MCPClient(configuration: server, logStore: logStore)
-            mcpClient = client
-            
-            // Wire up elicitation callback
-            client.onElicitation = { [weak self] elicitation in
-                self?.pendingElicitation = elicitation
-            }
-            
-            // Initialize connection
-            let initResult = try await client.initialize()
-            serverInfo = initResult.serverInfo
-            serverInstructions = initResult.instructions
-            
-            // Fetch capabilities
-            if initResult.capabilities.tools != nil {
-                tools = try await client.listTools()
-            }
-            if initResult.capabilities.prompts != nil {
-                prompts = try await client.listPrompts()
-            }
-            if initResult.capabilities.resources != nil {
-                resources = try await client.listResources()
-            }
-            
-            connectionState = .connected
-        } catch {
-            connectionState = .error(error.localizedDescription)
-            mcpClient = nil
+    /// Start a server session (connect)
+    func startSession(for configuration: ServerConfiguration) {
+        let session = self.session(for: configuration)
+        Task {
+            await session.connect()
         }
     }
     
-    func disconnect() {
-        mcpClient?.disconnect()
-        mcpClient = nil
-        connectionState = .disconnected
-        serverInfo = nil
-        serverInstructions = nil
-        tools = []
-        prompts = []
-        resources = []
+    /// Stop a server session (disconnect)
+    func stopSession(for configuration: ServerConfiguration) {
+        guard let session = sessions[configuration.id] else { return }
+        session.disconnect()
     }
     
-    func callTool(name: String, arguments: [String: Any]) async throws -> MCPToolResult {
-        guard let client = mcpClient else {
-            throw MCPError.notConnected
+    /// Remove a session entirely (e.g. when deleting a server config)
+    func removeSession(for configId: UUID) {
+        if let session = sessions[configId] {
+            session.disconnect()
         }
-        return try await client.callTool(name: name, arguments: arguments)
+        sessions.removeValue(forKey: configId)
     }
     
-    // MARK: - Elicitation
-    
-    func respondToElicitation(action: MCPElicitationResult.ElicitationAction, content: [String: Any]? = nil) async {
-        guard let elicitation = pendingElicitation,
-              let client = mcpClient else {
-            return
-        }
-        
-        let result: MCPElicitationResult
-        switch action {
-        case .accept:
-            result = .accept(content: content ?? [:])
-        case .decline:
-            result = .decline()
-        case .cancel:
-            result = MCPElicitationResult(action: .cancel, content: nil)
-        }
-        
-        do {
-            try await client.respondToElicitation(requestId: elicitation.requestId, result: result)
-        } catch {
-            logStore.addEntry(LogEntry(
-                direction: .outgoing,
-                method: "elicitation/create (error)",
-                content: "Failed to send elicitation response: \(error.localizedDescription)",
-                isError: true
-            ))
-        }
-        
-        pendingElicitation = nil
+    /// Connection state for a given server config
+    func connectionState(for configId: UUID) -> ServerSession.ConnectionState {
+        sessions[configId]?.connectionState ?? .disconnected
     }
 }
 

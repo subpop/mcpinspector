@@ -1,16 +1,16 @@
 import SwiftUI
 
 struct ToolsView: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @State private var selectedTool: MCPTool?
     @State private var showingInvocationSheet = false
     @State private var searchText = ""
     
     private var filteredTools: [MCPTool] {
         if searchText.isEmpty {
-            return appState.tools
+            return session.tools
         }
-        return appState.tools.filter {
+        return session.tools.filter {
             $0.name.localizedCaseInsensitiveContains(searchText) ||
             ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false)
         }
@@ -18,19 +18,16 @@ struct ToolsView: View {
     
     var body: some View {
         HSplitView {
-            // Tools List
             toolsList
                 .frame(minWidth: 250, maxWidth: 350)
             
-            // Tool Detail
             toolDetail
                 .frame(minWidth: 400)
         }
-        .navigationTitle("Tools")
         .searchable(text: $searchText, prompt: "Search tools...")
         .sheet(isPresented: $showingInvocationSheet) {
             if let tool = selectedTool {
-                ToolInvocationSheet(tool: tool)
+                ToolInvocationSheet(session: session, tool: tool)
             }
         }
     }
@@ -40,7 +37,7 @@ struct ToolsView: View {
     private var toolsList: some View {
         List(selection: $selectedTool) {
             if filteredTools.isEmpty {
-                if appState.tools.isEmpty {
+                if session.tools.isEmpty {
                     Text("No tools available")
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -68,7 +65,6 @@ struct ToolsView: View {
         if let tool = selectedTool {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(tool.name)
@@ -92,7 +88,6 @@ struct ToolsView: View {
                     
                     Divider()
                     
-                    // Input Schema
                     if let schema = tool.inputSchema {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Input Schema")
@@ -172,7 +167,6 @@ struct SchemaView: View {
                 }
             }
             
-            // Raw schema view
             DisclosureGroup("Raw Schema") {
                 ScrollView(.horizontal, showsIndicators: true) {
                     Text(schema.prettyPrinted())
@@ -236,6 +230,5 @@ struct PropertyRow: View {
 }
 
 #Preview {
-    ToolsView()
-        .environmentObject(AppState())
+    ToolsView(session: ServerSession(configuration: .sample))
 }

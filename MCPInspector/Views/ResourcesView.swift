@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct ResourcesView: View {
-    @EnvironmentObject private var appState: AppState
+    @ObservedObject var session: ServerSession
     @State private var selectedResource: MCPResource?
     @State private var searchText = ""
     
     private var filteredResources: [MCPResource] {
         if searchText.isEmpty {
-            return appState.resources
+            return session.resources
         }
-        return appState.resources.filter {
+        return session.resources.filter {
             $0.name.localizedCaseInsensitiveContains(searchText) ||
             $0.uri.localizedCaseInsensitiveContains(searchText) ||
             ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false)
@@ -18,15 +18,12 @@ struct ResourcesView: View {
     
     var body: some View {
         HSplitView {
-            // Resources List
             resourcesList
                 .frame(minWidth: 250, maxWidth: 350)
             
-            // Resource Detail
             resourceDetail
                 .frame(minWidth: 400)
         }
-        .navigationTitle("Resources")
         .searchable(text: $searchText, prompt: "Search resources...")
     }
     
@@ -35,7 +32,7 @@ struct ResourcesView: View {
     private var resourcesList: some View {
         List(selection: $selectedResource) {
             if filteredResources.isEmpty {
-                if appState.resources.isEmpty {
+                if session.resources.isEmpty {
                     Text("No resources available")
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -63,7 +60,6 @@ struct ResourcesView: View {
         if let resource = selectedResource {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Header
                     VStack(alignment: .leading, spacing: 4) {
                         Text(resource.name)
                             .font(.title2)
@@ -78,7 +74,6 @@ struct ResourcesView: View {
                     
                     Divider()
                     
-                    // Resource Details
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Details")
                             .font(.headline)
@@ -179,6 +174,5 @@ struct ResourceRow: View {
 }
 
 #Preview {
-    ResourcesView()
-        .environmentObject(AppState())
+    ResourcesView(session: ServerSession(configuration: .sample))
 }

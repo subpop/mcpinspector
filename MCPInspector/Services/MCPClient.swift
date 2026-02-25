@@ -17,7 +17,6 @@ class MCPClient: ObservableObject {
         self.configuration = configuration
         self.logStore = logStore
         
-        // Create transport with stderr callback and server request handler
         self.transport = StdioTransport(
             configuration: configuration,
             onStderr: { [weak logStore] stderrText in
@@ -30,62 +29,34 @@ class MCPClient: ObservableObject {
                     ))
                 }
             },
-            onServerRequest: { [weak logStore] method, requestId, params in
-                // We need to route this back to the MCPClient on the main actor.
-                // The actual handling happens via a notification since we can't
-                // capture self during init.
-                Task { @MainActor in
-                    // Log the incoming server request
+            onServerRequest: nil
+        )
+        
+        // Wire up server request routing through the transport after init
+        Task {
+            await transport.setServerRequestHandler { [weak self] method, requestId, params in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
                     let paramsJSON = params?.prettyPrinted() ?? "{}"
-                    logStore?.addEntry(LogEntry(
+                    self.logStore.addEntry(LogEntry(
                         direction: .incoming,
                         method: method,
                         content: paramsJSON
                     ))
-                    
-                    // Post notification for the client to pick up
-                    NotificationCenter.default.post(
-                        name: .mcpServerRequest,
-                        object: nil,
-                        userInfo: [
-                            "method": method,
-                            "requestId": requestId,
-                            "params": params as Any
-                        ]
-                    )
+                    self.handleServerRequest(method: method, requestId: requestId, params: params)
                 }
-            }
-        )
-        
-        // Listen for server request notifications
-        NotificationCenter.default.addObserver(
-            forName: .mcpServerRequest,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            Task { @MainActor [weak self] in
-                self?.handleServerRequest(notification)
             }
         }
     }
     
     // MARK: - Server Request Handling
     
-    private func handleServerRequest(_ notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let method = userInfo["method"] as? String,
-              let requestId = userInfo["requestId"] as? RequestID else {
-            return
-        }
-        
-        let params = userInfo["params"] as? JSONValue
-        
+    private func handleServerRequest(method: String, requestId: RequestID, params: JSONValue?) {
         switch method {
         case "elicitation/create":
             handleElicitationRequest(requestId: requestId, params: params)
         default:
             print("[MCP] Unhandled server request method: \(method)")
-            // Send method not found error back
             Task {
                 try? await transport.sendResponse(JSONRPCResponse(
                     id: requestId,
@@ -103,7 +74,6 @@ class MCPClient: ObservableObject {
         guard let params = params,
               let message = params["message"]?.stringValue,
               let requestedSchema = params["requestedSchema"] else {
-            // Send error for invalid params
             Task {
                 try? await transport.sendResponse(JSONRPCResponse(
                     id: requestId,
@@ -135,7 +105,6 @@ class MCPClient: ObservableObject {
         let response = JSONRPCResponse(id: requestId, result: resultValue)
         try await transport.sendResponse(response)
         
-        // Log the outgoing response
         logStore.addEntry(LogEntry(
             direction: .outgoing,
             method: "elicitation/create (response)",
@@ -146,10 +115,8 @@ class MCPClient: ObservableObject {
     // MARK: - Connection Lifecycle
     
     func initialize() async throws -> MCPInitializeResult {
-        // Start the transport
         try await transport.start()
         
-        // Send initialize request
         let request = messageBuilder.buildInitialize()
         logRequest(method: "initialize", request: request)
         
@@ -164,11 +131,9 @@ class MCPClient: ObservableObject {
             throw MCPError.unexpectedResponse("No result in initialize response")
         }
         
-        // Decode the result
         let resultData = try JSONEncoder().encode(result)
         let initResult = try JSONDecoder().decode(MCPInitializeResult.self, from: resultData)
         
-        // Send initialized notification
         let notification = messageBuilder.buildInitialized()
         try await transport.sendNotification(notification)
         logNotification(method: "notifications/initialized")
@@ -310,10 +275,4 @@ class MCPClient: ObservableObject {
         }
         return string
     }
-}
-
-// MARK: - Notification Names
-
-extension Notification.Name {
-    static let mcpServerRequest = Notification.Name("mcpServerRequest")
 }
