@@ -24,33 +24,53 @@ struct ResourcesView: View {
             resourceDetail
                 .frame(minWidth: 400)
         }
-        .searchable(text: $searchText, prompt: "Search resources...")
     }
     
     // MARK: - Resources List
     
     private var resourcesList: some View {
-        List(selection: $selectedResource) {
-            if filteredResources.isEmpty {
-                if session.resources.isEmpty {
-                    Text("No resources available")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    Text("No matching resources")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                }
-            } else {
-                ForEach(filteredResources) { resource in
-                    ResourceRow(resource: resource, isSelected: selectedResource?.id == resource.id)
-                        .tag(resource)
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                TextField("Filter resources...", text: $searchText)
+                    .textFieldStyle(.plain)
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(8)
+            .background(Color.secondary.opacity(0.1))
+            
+            Divider()
+            
+            List(selection: $selectedResource) {
+                if filteredResources.isEmpty {
+                    if session.resources.isEmpty {
+                        Text("No resources available")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    } else {
+                        Text("No matching resources")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    }
+                } else {
+                    ForEach(filteredResources) { resource in
+                        ResourceRow(resource: resource, isSelected: selectedResource?.id == resource.id)
+                            .tag(resource)
+                    }
+                }
+            }
+            .listStyle(.inset)
         }
-        .listStyle(.inset)
     }
     
     // MARK: - Resource Detail
