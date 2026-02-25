@@ -18,8 +18,8 @@ MCP Inspector is currently available by compiling from source.
 
 ### Requirements
 
-- macOS 14.0 (Sonoma) or later
-- Xcode 15.0 or later
+- macOS 26.0 (Sonoma) or later
+- Xcode 26.0 or later
 
 ### Build Steps
 
@@ -42,38 +42,41 @@ MCP Inspector is currently available by compiling from source.
 
 ### Adding a Server
 
-1. Open the **Servers** section from the sidebar
-2. Click the **+** button to add a new server configuration
-3. Enter a name, the command to run, any arguments, and optional environment variables
-4. Click **Add**
+1. Click the **+** button in the sidebar toolbar
+2. Enter a name, the command to run, any arguments, and optional environment variables
+3. Click **Add**
 
 Example configuration for the MCP "everything" test server:
 - **Name:** Everything Server
 - **Command:** `npx`
 - **Arguments:** `-y @modelcontextprotocol/server-everything`
 
-### Connecting
+You can also right-click a server in the sidebar to edit or delete it.
 
-1. Go to the **Connection** section
-2. Select a configured server from the dropdown
-3. Click **Connect**
+### Starting a Server
 
-Once connected, the app displays the server name, version, and available capabilities.
+1. Select a server from the sidebar
+2. Click the **Start** (play) button in the toolbar, or click **Start Server** in the detail view
+
+Once connected, the detail view shows the server name, version, and available capabilities in the **Overview** tab. Multiple servers can run simultaneously — the bottom of the sidebar shows a count of running servers.
+
+To stop a server, click the **Stop** button in the toolbar or right-click the server in the sidebar and choose **Stop**.
 
 ### Inspecting Tools, Prompts, and Resources
 
-After connecting, navigate to **Tools**, **Prompts**, or **Resources** in the sidebar to browse what the server exposes. Select any item to view its details.
+Once a server is running, use the tab bar at the top of the detail view to switch between **Tools**, **Prompts**, **Resources**, and **Logs**. Each tab shows a badge with the number of available items.
 
 ### Calling a Tool
 
-1. Select a tool from the **Tools** list
-2. Click **Call Tool**
-3. Fill in the parameters using the form or switch to **Raw JSON** mode
-4. Click **Execute** to invoke the tool and view the result
+1. Switch to the **Tools** tab
+2. Select a tool from the list (use the filter field to search)
+3. Click **Call Tool**
+4. Fill in the parameters using the form or switch to **Raw JSON** mode
+5. Click **Execute** to invoke the tool and view the result
 
 ### Viewing Logs
 
-The **Logs** section shows all JSON-RPC traffic between the app and the server. Use the filter menu to show only requests, responses, or stderr output. You can search logs by method name or content and export them to a JSON file for further analysis.
+The **Logs** tab shows all JSON-RPC traffic between the app and the server. Use the filter menu to show only requests, responses, or stderr output. You can search logs by method name or content and export them to a JSON file for further analysis.
 
 ## License
 
