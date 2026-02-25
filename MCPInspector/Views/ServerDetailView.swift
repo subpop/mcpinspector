@@ -59,7 +59,8 @@ struct ServerDetailView: View {
             .help("Stop server")
         case .connecting:
             ProgressView()
-                .scaleEffect(0.7)
+                .controlSize(.small)
+                .padding(.leading, 8)
             Button(action: { session.disconnect() }) {
                 Label("Stop", systemImage: "stop.fill")
             }
@@ -100,7 +101,7 @@ struct ServerDetailView: View {
     private var connectingView: some View {
         VStack(spacing: 16) {
             ProgressView()
-                .scaleEffect(1.5)
+                .controlSize(.large)
             
             Text("Connecting to \(session.configuration.name)...")
                 .font(.headline)
