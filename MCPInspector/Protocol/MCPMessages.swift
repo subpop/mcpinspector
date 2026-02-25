@@ -53,7 +53,7 @@ struct MCPInitializeParams: Codable {
         MCPInitializeParams(
             protocolVersion: MCP_PROTOCOL_VERSION,
             capabilities: MCPClientCapabilities(),
-            clientInfo: MCPClientInfo(name: "MCPInspector", version: "1.0.0")
+            clientInfo: MCPClientInfo(name: "MCP Inspector", version: "1.0.0")
         )
     }
 }

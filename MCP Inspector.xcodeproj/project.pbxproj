@@ -8,7 +8,7 @@
 
 /* Begin PBXFileReference section */
 		3B2804532F30585A00E15514 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		A2000000 /* MCPInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MCPInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000000 /* MCP Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MCP Inspector.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,7 +38,7 @@
 		A4000005 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A2000000 /* MCPInspector.app */,
+				A2000000 /* MCP Inspector.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -46,9 +46,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A5000000 /* MCPInspector */ = {
+		A5000000 /* MCP Inspector */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A6000002 /* Build configuration list for PBXNativeTarget "MCPInspector" */;
+			buildConfigurationList = A6000002 /* Build configuration list for PBXNativeTarget "MCP Inspector" */;
 			buildPhases = (
 				A3000000 /* Sources */,
 				A3000001 /* Frameworks */,
@@ -61,9 +61,9 @@
 			fileSystemSynchronizedGroups = (
 				3B28043F2F30582400E15514 /* MCPInspector */,
 			);
-			name = MCPInspector;
-			productName = MCPInspector;
-			productReference = A2000000 /* MCPInspector.app */;
+			name = "MCP Inspector";
+			productName = "MCP Inspector";
+			productReference = A2000000 /* MCP Inspector.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -81,7 +81,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A6000000 /* Build configuration list for PBXProject "MCPInspector" */;
+			buildConfigurationList = A6000000 /* Build configuration list for PBXProject "MCP Inspector" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -94,7 +94,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A5000000 /* MCPInspector */,
+				A5000000 /* MCP Inspector */,
 			);
 		};
 /* End PBXProject section */
@@ -297,7 +297,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A6000000 /* Build configuration list for PBXProject "MCPInspector" */ = {
+		A6000000 /* Build configuration list for PBXProject "MCP Inspector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A8000000 /* Debug */,
@@ -306,7 +306,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A6000002 /* Build configuration list for PBXNativeTarget "MCPInspector" */ = {
+		A6000002 /* Build configuration list for PBXNativeTarget "MCP Inspector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A8000002 /* Debug */,

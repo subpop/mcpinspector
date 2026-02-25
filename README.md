@@ -31,7 +31,7 @@ MCP Inspector is currently available by compiling from source.
 
 2. Open the project in Xcode:
    ```bash
-   open MCPInspector.xcodeproj
+   open "MCP Inspector.xcodeproj"
    ```
 
 3. Select your development team in the project settings (Signing & Capabilities)
