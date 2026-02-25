@@ -245,83 +245,65 @@ struct ServerDetailView: View {
     // MARK: - Configuration Card
     
     private var configurationCard: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Configuration", systemImage: "gearshape")
-                    .font(.headline)
-                
-                Divider()
-                
-                infoRow(label: "Name", value: session.configuration.name)
-                infoRow(label: "Command", value: session.configuration.command)
-                
-                if !session.configuration.arguments.isEmpty {
-                    infoRow(label: "Arguments", value: session.configuration.arguments.joined(separator: " "))
-                }
-                
-                if !session.configuration.environmentVariables.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Environment")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .frame(width: 80, alignment: .leading)
-                        
-                        ForEach(Array(session.configuration.environmentVariables.keys.sorted()), id: \.self) { key in
-                            if let value = session.configuration.environmentVariables[key] {
-                                Text("\(key)=\(value)")
-                                    .font(.system(.caption, design: .monospaced))
-                                    .textSelection(.enabled)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(4)
+        DetailCard(title: "Configuration", icon: "gearshape") {
+            infoRow(label: "Name", value: session.configuration.name)
+            configurationDetails
         }
     }
     
     // MARK: - Server Info Card
     
     private var serverInfoCard: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Label("Server Information", systemImage: "info.circle")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                        Text("Connected")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(8)
-                }
+        DetailCard(title: "Server Information", icon: "info.circle") {
+            if let serverInfo = session.serverInfo {
+                infoRow(label: "Name", value: serverInfo.name)
                 
-                Divider()
-                
-                if let serverInfo = session.serverInfo {
-                    infoRow(label: "Name", value: serverInfo.name)
-                    
-                    if let version = serverInfo.version {
-                        infoRow(label: "Version", value: version)
-                    }
-                }
-                
-                infoRow(label: "Command", value: session.configuration.command)
-                
-                if !session.configuration.arguments.isEmpty {
-                    infoRow(label: "Arguments", value: session.configuration.arguments.joined(separator: " "))
+                if let version = serverInfo.version {
+                    infoRow(label: "Version", value: version)
                 }
             }
-            .padding(4)
+            configurationDetails
+        } trailing: {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 10, height: 10)
+                Text("Connected")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(Color.green.opacity(0.1))
+            .cornerRadius(8)
+        }
+    }
+    
+    // MARK: - Configuration Details (shared rows)
+    
+    @ViewBuilder
+    private var configurationDetails: some View {
+        infoRow(label: "Command", value: session.configuration.command)
+        
+        if !session.configuration.arguments.isEmpty {
+            infoRow(label: "Arguments", value: session.configuration.arguments.joined(separator: " "))
+        }
+        
+        if !session.configuration.environmentVariables.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Environment")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(width: 80, alignment: .leading)
+                
+                ForEach(Array(session.configuration.environmentVariables.keys.sorted()), id: \.self) { key in
+                    if let value = session.configuration.environmentVariables[key] {
+                        Text("\(key)=\(value)")
+                            .font(.system(.caption, design: .monospaced))
+                            .textSelection(.enabled)
+                    }
+                }
+            }
         }
     }
     
@@ -419,6 +401,38 @@ struct ServerDetailView: View {
         .padding()
         .background(Color.secondary.opacity(0.1))
         .cornerRadius(8)
+    }
+}
+
+private struct DetailCard<Content: View, Trailing: View>: View {
+    let title: String
+    let icon: String
+    @ViewBuilder let content: Content
+    @ViewBuilder let trailing: Trailing
+    
+    init(title: String, icon: String, @ViewBuilder content: () -> Content, @ViewBuilder trailing: () -> Trailing = { EmptyView() }) {
+        self.title = title
+        self.icon = icon
+        self.content = content()
+        self.trailing = trailing()
+    }
+    
+    var body: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label(title, systemImage: icon)
+                        .font(.headline)
+                    Spacer()
+                    trailing
+                }
+                
+                Divider()
+                
+                content
+            }
+            .padding(4)
+        }
     }
 }
 
