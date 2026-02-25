@@ -24,7 +24,7 @@ struct MCPInspectorApp: App {
 class AppState: ObservableObject {
     @Published var configurationStore = ConfigurationStore()
     @Published var selectedServerId: UUID?
-    @Published var sessions: [UUID: ServerSession] = [:]
+    private(set) var sessions: [UUID: ServerSession] = [:]
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -78,6 +78,7 @@ class AppState: ObservableObject {
         if let session = sessions[configId] {
             session.disconnect()
         }
+        objectWillChange.send()
         sessions.removeValue(forKey: configId)
     }
     
