@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ServerDetailView: View {
-    @EnvironmentObject private var appState: AppState
     @ObservedObject var session: ServerSession
     let onEdit: () -> Void
     

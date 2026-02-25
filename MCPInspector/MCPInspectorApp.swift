@@ -23,7 +23,6 @@ struct MCPInspectorApp: App {
 @MainActor
 class AppState: ObservableObject {
     @Published var configurationStore = ConfigurationStore()
-    @Published var selectedServerId: UUID?
     private(set) var sessions: [UUID: ServerSession] = [:]
     
     private var cancellables = Set<AnyCancellable>()
@@ -34,12 +33,6 @@ class AppState: ObservableObject {
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
-    }
-    
-    /// The currently selected session (nil if no server is selected or no session exists yet)
-    var selectedSession: ServerSession? {
-        guard let id = selectedServerId else { return nil }
-        return sessions[id]
     }
     
     /// Get or create a session for the given configuration

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var selectedServerId: UUID?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var showingAddSheet = false
     @State private var editingConfiguration: ServerConfiguration?
@@ -51,7 +52,7 @@ struct MainView: View {
     }
     
     private var serverList: some View {
-        List(selection: $appState.selectedServerId) {
+        List(selection: $selectedServerId) {
             ForEach(appState.configurationStore.configurations) { config in
                 ServerSidebarRow(
                     configuration: config,
@@ -127,7 +128,7 @@ struct MainView: View {
     
     @ViewBuilder
     private var detailView: some View {
-        if let serverId = appState.selectedServerId,
+        if let serverId = selectedServerId,
            let config = appState.configurationStore.configuration(withId: serverId) {
             let session = appState.session(for: config)
             ServerDetailView(session: session, onEdit: {
@@ -195,8 +196,8 @@ struct MainView: View {
     }
     
     private func deleteServer(_ config: ServerConfiguration) {
-        if appState.selectedServerId == config.id {
-            appState.selectedServerId = nil
+        if selectedServerId == config.id {
+            selectedServerId = nil
         }
         appState.removeSession(for: config.id)
         appState.configurationStore.delete(config)
