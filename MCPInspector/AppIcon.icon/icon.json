@@ -1,12 +1,16 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.20072,0.96783,0.55103,1.00000"
+    "automatic-gradient" : "extended-srgb:0.00000,0.76471,0.81569,1.00000"
   },
   "groups" : [
     {
+      "blend-mode" : "normal",
       "blur-material" : null,
+      "hidden" : false,
       "layers" : [
         {
+          "blend-mode" : "normal",
+          "glass" : true,
           "image-name" : "Braces 3.png",
           "name" : "Braces 3",
           "position" : {
@@ -19,6 +23,108 @@
         }
       ],
       "lighting" : "individual",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : false,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blend-mode" : "normal",
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "image-name" : "Circle.png",
+          "name" : "Circle",
+          "position" : {
+            "scale" : 0.75,
+            "translation-in-points" : [
+              198.0359375,
+              -314.41812500000003
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "image-name" : "Circle.png",
+          "name" : "Circle",
+          "position" : {
+            "scale" : 0.75,
+            "translation-in-points" : [
+              135.86796875,
+              -314.41812500000003
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "image-name" : "Circle.png",
+          "name" : "Circle",
+          "position" : {
+            "scale" : 0.75,
+            "translation-in-points" : [
+              73.69999999999999,
+              -314.41812500000003
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : false,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "glass" : true,
+          "image-name" : "Rectangle.png",
+          "name" : "Rectangle",
+          "position" : {
+            "scale" : 0.72,
+            "translation-in-points" : [
+              36.72000000000003,
+              80.17187500000006
+            ]
+          }
+        },
+        {
+          "glass" : true,
+          "image-name" : "Rectangle.png",
+          "name" : "Rectangle",
+          "position" : {
+            "scale" : 0.72,
+            "translation-in-points" : [
+              36.72000000000003,
+              348.55875
+            ]
+          }
+        },
+        {
+          "glass" : true,
+          "image-name" : "Rectangle.png",
+          "name" : "Rectangle",
+          "position" : {
+            "scale" : 0.72,
+            "translation-in-points" : [
+              36.72000000000003,
+              214.3653124999999
+            ]
+          }
+        }
+      ],
+      "lighting" : "combined",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
