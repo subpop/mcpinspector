@@ -35,6 +35,9 @@ class AppState: ObservableObject {
     @Published var prompts: [MCPPrompt] = []
     @Published var resources: [MCPResource] = []
     
+    // Elicitation state
+    @Published var pendingElicitation: PendingElicitation?
+    
     private var cancellables = Set<AnyCancellable>()
     
     enum ConnectionState: Equatable {
@@ -73,6 +76,11 @@ class AppState: ObservableObject {
         do {
             let client = MCPClient(configuration: server, logStore: logStore)
             mcpClient = client
+            
+            // Wire up elicitation callback
+            client.onElicitation = { [weak self] elicitation in
+                self?.pendingElicitation = elicitation
+            }
             
             // Initialize connection
             let initResult = try await client.initialize()
@@ -113,6 +121,38 @@ class AppState: ObservableObject {
             throw MCPError.notConnected
         }
         return try await client.callTool(name: name, arguments: arguments)
+    }
+    
+    // MARK: - Elicitation
+    
+    func respondToElicitation(action: MCPElicitationResult.ElicitationAction, content: [String: Any]? = nil) async {
+        guard let elicitation = pendingElicitation,
+              let client = mcpClient else {
+            return
+        }
+        
+        let result: MCPElicitationResult
+        switch action {
+        case .accept:
+            result = .accept(content: content ?? [:])
+        case .decline:
+            result = .decline()
+        case .cancel:
+            result = MCPElicitationResult(action: .cancel, content: nil)
+        }
+        
+        do {
+            try await client.respondToElicitation(requestId: elicitation.requestId, result: result)
+        } catch {
+            logStore.addEntry(LogEntry(
+                direction: .outgoing,
+                method: "elicitation/create (error)",
+                content: "Failed to send elicitation response: \(error.localizedDescription)",
+                isError: true
+            ))
+        }
+        
+        pendingElicitation = nil
     }
 }
 

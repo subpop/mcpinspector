@@ -16,12 +16,20 @@ actor StdioTransport {
     /// Callback for stderr output
     private let onStderr: (@Sendable (String) -> Void)?
     
+    /// Callback for incoming server-to-client requests (method, id, params)
+    private let onServerRequest: (@Sendable (String, RequestID, JSONValue?) -> Void)?
+    
     /// Collected stderr output for error reporting
     private var stderrBuffer: String = ""
     
-    init(configuration: ServerConfiguration, onStderr: (@Sendable (String) -> Void)? = nil) {
+    init(
+        configuration: ServerConfiguration,
+        onStderr: (@Sendable (String) -> Void)? = nil,
+        onServerRequest: (@Sendable (String, RequestID, JSONValue?) -> Void)? = nil
+    ) {
         self.configuration = configuration
         self.onStderr = onStderr
+        self.onServerRequest = onServerRequest
     }
     
     /// Get collected stderr output
@@ -175,6 +183,17 @@ actor StdioTransport {
         }
     }
     
+    /// Send a JSON-RPC response back to the server (for server-initiated requests)
+    func sendResponse(_ response: JSONRPCResponse) throws {
+        guard isRunning, let stdinPipe = stdinPipe else {
+            throw MCPError.notConnected
+        }
+        
+        let responseString = try JSONRPCCodec.encodeResponse(response)
+        let messageData = (responseString + "\n").data(using: .utf8)!
+        try stdinPipe.fileHandleForWriting.write(contentsOf: messageData)
+    }
+    
     func sendNotification(_ notification: JSONRPCNotification) throws {
         guard isRunning, let stdinPipe = stdinPipe else {
             throw MCPError.notConnected
@@ -206,11 +225,23 @@ actor StdioTransport {
             guard !lineData.isEmpty else { continue }
             
             do {
-                let response = try JSONRPCCodec.decodeResponse(from: Data(lineData))
-                handleResponse(response)
+                let messageType = try JSONRPCCodec.classifyIncoming(from: Data(lineData))
+                
+                switch messageType {
+                case .response(let response):
+                    handleResponse(response)
+                    
+                case .serverRequest(let id, let method, let params):
+                    print("[MCP] Received server request: \(method)")
+                    onServerRequest?(method, id, params)
+                    
+                case .serverNotification(let method, let params):
+                    print("[MCP] Received server notification: \(method)")
+                    // Notifications don't require a response
+                    _ = params
+                }
             } catch {
-                print("[MCP] Failed to decode response: \(error)")
-                // Try to parse as notification or other message type
+                print("[MCP] Failed to decode message: \(error)")
                 if let text = String(data: Data(lineData), encoding: .utf8) {
                     print("[MCP] Raw message: \(text)")
                 }

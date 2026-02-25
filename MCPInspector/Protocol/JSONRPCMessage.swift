@@ -34,6 +34,22 @@ struct JSONRPCResponse: Codable {
     var isSuccess: Bool {
         error == nil
     }
+    
+    /// Build a response to send back to the server for a server-initiated request
+    init(id: RequestID, result: JSONValue) {
+        self.jsonrpc = "2.0"
+        self.id = id
+        self.result = result
+        self.error = nil
+    }
+    
+    /// Build an error response to send back to the server
+    init(id: RequestID, error: JSONRPCError) {
+        self.jsonrpc = "2.0"
+        self.id = id
+        self.result = nil
+        self.error = error
+    }
 }
 
 /// JSON-RPC 2.0 Error
@@ -257,6 +273,28 @@ enum JSONValue: Codable, Equatable {
     }
 }
 
+// MARK: - Incoming Message Classification
+
+/// Represents any incoming JSON-RPC message before classification
+struct JSONRPCIncoming: Codable {
+    let jsonrpc: String?
+    let id: RequestID?
+    let method: String?
+    let params: JSONValue?
+    let result: JSONValue?
+    let error: JSONRPCError?
+}
+
+/// Classified incoming message type
+enum IncomingMessageType {
+    /// A response to a request we sent (has id, no method)
+    case response(JSONRPCResponse)
+    /// A request from the server (has both id and method)
+    case serverRequest(id: RequestID, method: String, params: JSONValue?)
+    /// A notification from the server (has method, no id)
+    case serverNotification(method: String, params: JSONValue?)
+}
+
 // MARK: - JSON Encoding/Decoding Helpers
 
 struct JSONRPCCodec {
@@ -286,5 +324,31 @@ struct JSONRPCCodec {
     
     static func decodeResponse(from data: Data) throws -> JSONRPCResponse {
         try decode(JSONRPCResponse.self, from: data)
+    }
+    
+    /// Classify an incoming message to determine if it's a response, server request, or notification
+    static func classifyIncoming(from data: Data) throws -> IncomingMessageType {
+        let incoming = try decode(JSONRPCIncoming.self, from: data)
+
+        if let method = incoming.method, let id = incoming.id {
+            // Has both method and id -> server-to-client request
+            return .serverRequest(id: id, method: method, params: incoming.params)
+        } else if let method = incoming.method {
+            // Has method but no id -> notification
+            return .serverNotification(method: method, params: incoming.params)
+        } else {
+            // No method -> response to one of our requests
+            let response = try decode(JSONRPCResponse.self, from: data)
+            return .response(response)
+        }
+    }
+    
+    /// Encode a response to send back to the server
+    static func encodeResponse(_ response: JSONRPCResponse) throws -> String {
+        let data = try encode(response)
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw MCPError.encodingError("Failed to encode response to UTF-8 string")
+        }
+        return string
     }
 }

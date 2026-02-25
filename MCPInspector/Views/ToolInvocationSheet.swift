@@ -134,6 +134,9 @@ struct ToolInvocationSheet: View {
         .onAppear {
             initializeParameters()
         }
+        .sheet(item: $appState.pendingElicitation) { elicitation in
+            ElicitationSheet(elicitation: elicitation)
+        }
     }
     
     // MARK: - Header

@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - MCP Protocol Version
 
-let MCP_PROTOCOL_VERSION = "2024-11-05"
+let MCP_PROTOCOL_VERSION = "2025-03-26"
 
 // MARK: - MCP Errors
 
@@ -67,10 +67,16 @@ struct MCPClientCapabilities: Codable {
     // Client capabilities - we support receiving from server
     let roots: RootsCapability?
     let sampling: SamplingCapability?
+    let elicitation: ElicitationCapability?
     
-    init(roots: RootsCapability? = nil, sampling: SamplingCapability? = nil) {
+    init(
+        roots: RootsCapability? = nil,
+        sampling: SamplingCapability? = nil,
+        elicitation: ElicitationCapability? = ElicitationCapability()
+    ) {
         self.roots = roots
         self.sampling = sampling
+        self.elicitation = elicitation
     }
     
     struct RootsCapability: Codable {
@@ -78,6 +84,8 @@ struct MCPClientCapabilities: Codable {
     }
     
     struct SamplingCapability: Codable {}
+    
+    struct ElicitationCapability: Codable {}
 }
 
 struct MCPInitializeResult: Codable {
@@ -212,6 +220,51 @@ struct MCPContent: Codable {
             return "[Binary data: \(data.prefix(100))...]"
         }
         return "[Unknown content]"
+    }
+}
+
+// MARK: - Elicitation (server-to-client request)
+
+/// Parameters sent by the server in an `elicitation/create` request
+struct MCPElicitationParams: Codable {
+    let message: String
+    let requestedSchema: JSONValue
+}
+
+/// Result the client sends back for an `elicitation/create` request
+struct MCPElicitationResult: Codable {
+    let action: ElicitationAction
+    let content: JSONValue?
+    
+    enum ElicitationAction: String, Codable {
+        case accept
+        case decline
+        case cancel
+    }
+    
+    static func accept(content: [String: Any]) -> MCPElicitationResult {
+        MCPElicitationResult(action: .accept, content: JSONValue.from(content))
+    }
+    
+    static func decline() -> MCPElicitationResult {
+        MCPElicitationResult(action: .decline, content: nil)
+    }
+}
+
+/// A pending elicitation request awaiting user interaction
+struct PendingElicitation: Identifiable {
+    let id: String
+    let requestId: RequestID
+    let message: String
+    let requestedSchema: JSONValue
+    
+    /// Convenience accessors for schema fields
+    var properties: [String: JSONValue]? {
+        requestedSchema["properties"]?.objectValue
+    }
+    
+    var requiredFields: [String] {
+        requestedSchema["required"]?.arrayValue?.compactMap { $0.stringValue } ?? []
     }
 }
 
