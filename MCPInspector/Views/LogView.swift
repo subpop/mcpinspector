@@ -193,21 +193,21 @@ struct LogView: View {
     private var filterMenu: some View {
         Menu {
             Button(action: { filterDirection = nil }) {
-                Label("All Messages", systemImage: filterDirection == nil ? "checkmark" : "")
+                filterMenuItem("All Messages", isSelected: filterDirection == nil)
             }
             
             Divider()
             
             Button(action: { filterDirection = .outgoing }) {
-                Label("Requests Only", systemImage: filterDirection == .outgoing ? "checkmark" : "")
+                filterMenuItem("Requests Only", isSelected: filterDirection == .outgoing)
             }
             
             Button(action: { filterDirection = .incoming }) {
-                Label("Responses Only", systemImage: filterDirection == .incoming ? "checkmark" : "")
+                filterMenuItem("Responses Only", isSelected: filterDirection == .incoming)
             }
             
             Button(action: { filterDirection = .stderr }) {
-                Label("stderr Only", systemImage: filterDirection == .stderr ? "checkmark" : "")
+                filterMenuItem("stderr Only", isSelected: filterDirection == .stderr)
             }
             
             Divider()
@@ -215,6 +215,14 @@ struct LogView: View {
             Toggle("Errors Only", isOn: $showErrorsOnly)
         } label: {
             Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+        }
+    }
+    
+    private func filterMenuItem(_ title: String, isSelected: Bool) -> some View {
+        HStack {
+            Image(systemName: "checkmark")
+                .opacity(isSelected ? 1 : 0)
+            Text(title)
         }
     }
     
