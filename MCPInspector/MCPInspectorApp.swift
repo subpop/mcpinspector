@@ -11,7 +11,7 @@ struct MCPInspectorApp: App {
                 .environmentObject(appState)
         }
         .windowStyle(.automatic)
-        .defaultSize(width: 700, height: 650)
+        .defaultSize(width: 800, height: 650)
 
         Settings {
             SettingsView()
