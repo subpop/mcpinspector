@@ -4,7 +4,7 @@
   },
   "groups" : [
     {
-      "blend-mode" : "normal",
+      "blend-mode" : "soft-light",
       "blur-material" : null,
       "hidden" : false,
       "layers" : [
@@ -27,7 +27,7 @@
         "kind" : "neutral",
         "opacity" : 0.5
       },
-      "specular" : false,
+      "specular" : true,
       "translucency" : {
         "enabled" : true,
         "value" : 0.5
@@ -124,7 +124,7 @@
           }
         }
       ],
-      "lighting" : "combined",
+      "lighting" : "individual",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
@@ -132,7 +132,7 @@
       "specular" : true,
       "translucency" : {
         "enabled" : true,
-        "value" : 0.5
+        "value" : 0.98
       }
     }
   ],
