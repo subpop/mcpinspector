@@ -3,9 +3,13 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject private var appState: AppState
     @State private var selectedServerId: UUID?
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
     @State private var showingAddSheet = false
     @State private var editingConfiguration: ServerConfiguration?
+    
+    private var hasServers: Bool {
+        !appState.configurationStore.configurations.isEmpty
+    }
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -14,6 +18,14 @@ struct MainView: View {
             detailView
         }
         .navigationSplitViewStyle(.balanced)
+        .onChange(of: hasServers) { _, newValue in
+            columnVisibility = newValue ? .all : .detailOnly
+        }
+        .onAppear {
+            if hasServers {
+                columnVisibility = .all
+            }
+        }
         .sheet(isPresented: $showingAddSheet) {
             ServerConfigEditView(mode: .add)
         }
@@ -70,26 +82,6 @@ struct MainView: View {
     
     private var emptyServerList: some View {
         VStack(spacing: 16) {
-            Spacer()
-            
-            Image(systemName: "server.rack")
-                .font(.system(size: 36))
-                .foregroundColor(.secondary)
-            
-            Text("No Servers")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            
-            Text("Add a server to get started.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Button(action: { showingAddSheet = true }) {
-                Label("Add Server", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-            
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -157,7 +149,7 @@ struct MainView: View {
     
     private var welcomeView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "network")
+            Image(systemName: "server.rack")
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
             
@@ -176,7 +168,7 @@ struct MainView: View {
                 Text("No servers configured yet.")
                     .foregroundColor(.secondary)
                 
-                Button("Add Server") {
+                Button("Add Server", systemImage: "plus") {
                     showingAddSheet = true
                 }
                 .buttonStyle(.borderedProminent)
