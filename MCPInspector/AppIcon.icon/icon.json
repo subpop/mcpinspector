@@ -4,22 +4,71 @@
   },
   "groups" : [
     {
-      "blend-mode" : "soft-light",
+      "blend-mode" : "hard-light",
       "blur-material" : null,
-      "hidden" : false,
       "layers" : [
         {
-          "blend-mode" : "normal",
-          "glass" : true,
-          "image-name" : "Braces 3.png",
-          "name" : "Braces 3",
+          "image-name" : "Close Brace.png",
+          "name" : "Close Brace",
           "position" : {
-            "scale" : 0.8,
+            "scale" : 1,
+            "translation-in-points" : [
+              84.328125,
+              0.5
+            ]
+          }
+        },
+        {
+          "image-name" : "Open Brace.png",
+          "name" : "Open Brace",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -19.5625,
+              0.5
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blend-mode" : "overlay",
+      "layers" : [
+        {
+          "image-name" : "Server.png",
+          "name" : "Server",
+          "position" : {
+            "scale" : 1,
             "translation-in-points" : [
               0,
-              11.699999999999989
+              192.7578125
             ]
           }
+        },
+        {
+          "image-name" : "Server.png",
+          "name" : "Server",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              0,
+              -190.6640625
+            ]
+          }
+        },
+        {
+          "image-name" : "Server.png",
+          "name" : "Server"
         }
       ],
       "lighting" : "individual",
@@ -27,112 +76,9 @@
         "kind" : "neutral",
         "opacity" : 0.5
       },
-      "specular" : true,
       "translucency" : {
         "enabled" : true,
         "value" : 0.5
-      }
-    },
-    {
-      "blend-mode" : "normal",
-      "layers" : [
-        {
-          "blend-mode" : "normal",
-          "image-name" : "Circle.png",
-          "name" : "Circle",
-          "position" : {
-            "scale" : 0.75,
-            "translation-in-points" : [
-              198.0359375,
-              -314.41812500000003
-            ]
-          }
-        },
-        {
-          "blend-mode" : "normal",
-          "image-name" : "Circle.png",
-          "name" : "Circle",
-          "position" : {
-            "scale" : 0.75,
-            "translation-in-points" : [
-              135.86796875,
-              -314.41812500000003
-            ]
-          }
-        },
-        {
-          "blend-mode" : "normal",
-          "image-name" : "Circle.png",
-          "name" : "Circle",
-          "position" : {
-            "scale" : 0.75,
-            "translation-in-points" : [
-              73.69999999999999,
-              -314.41812500000003
-            ]
-          }
-        }
-      ],
-      "lighting" : "individual",
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "specular" : false,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "blur-material" : null,
-      "layers" : [
-        {
-          "glass" : true,
-          "image-name" : "Rectangle.png",
-          "name" : "Rectangle",
-          "position" : {
-            "scale" : 0.72,
-            "translation-in-points" : [
-              36.72000000000003,
-              80.17187500000006
-            ]
-          }
-        },
-        {
-          "glass" : true,
-          "image-name" : "Rectangle.png",
-          "name" : "Rectangle",
-          "position" : {
-            "scale" : 0.72,
-            "translation-in-points" : [
-              36.72000000000003,
-              348.55875
-            ]
-          }
-        },
-        {
-          "glass" : true,
-          "image-name" : "Rectangle.png",
-          "name" : "Rectangle",
-          "position" : {
-            "scale" : 0.72,
-            "translation-in-points" : [
-              36.72000000000003,
-              214.3653124999999
-            ]
-          }
-        }
-      ],
-      "lighting" : "individual",
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "specular" : true,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.98
       }
     }
   ],
