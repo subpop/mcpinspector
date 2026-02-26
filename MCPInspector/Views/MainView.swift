@@ -74,6 +74,13 @@ struct MainView: View {
                 .contextMenu {
                     serverContextMenu(for: config)
                 }
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        deleteServer(config)
+                    } label: {
+                        Label("", systemImage: "trash")
+                    }
+                }
             }
             .onDelete(perform: deleteConfigurations)
         }
