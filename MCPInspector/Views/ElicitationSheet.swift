@@ -403,7 +403,7 @@ struct ElicitationSheet: View {
     }
 }
 
-#Preview {
+#Preview("Object Parameters") {
     let elicitation = PendingElicitation(
         id: "preview",
         requestId: .int(1),
@@ -439,5 +439,16 @@ struct ElicitationSheet: View {
         ])
     )
     
+    return ElicitationSheet(session: ServerSession(configuration: .sample), elicitation: elicitation)
+}
+
+#Preview("Empty Parameters") {
+    let elicitation = PendingElicitation(
+        id: "preview",
+        requestId: .int(1),
+        message: "Do you wish to continue?",
+        requestedSchema: .null,
+    )
+
     return ElicitationSheet(session: ServerSession(configuration: .sample), elicitation: elicitation)
 }
