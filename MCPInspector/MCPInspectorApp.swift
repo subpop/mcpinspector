@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 @main
 struct MCPInspectorApp: App {
     @StateObject private var appState = AppState()
+    @StateObject private var updater = SoftwareUpdater()
     @FocusedValue(\.selectedServerConfiguration) private var selectedConfig
     @FocusedValue(\.showExportSheet) private var showExportSheet
     
@@ -16,6 +17,12 @@ struct MCPInspectorApp: App {
         .windowStyle(.automatic)
         .defaultSize(width: 800, height: 650)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    updater.checkForUpdates()
+                }
+                .disabled(!updater.canCheckForUpdates)
+            }
             CommandGroup(after: .newItem) {
                 Section {
                     Button("Export…") {
@@ -28,7 +35,7 @@ struct MCPInspectorApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(updater: updater)
         }
     }
 }
@@ -103,14 +110,15 @@ class AppState: ObservableObject {
 }
 
 struct SettingsView: View {
+    @ObservedObject var updater: SoftwareUpdater
+
     var body: some View {
         Form {
-            Text("MCP Inspector Settings")
-                .font(.headline)
-            Text("No settings available yet.")
-                .foregroundColor(.secondary)
+            Toggle("Automatically check for updates", isOn: Binding(
+                get: { updater.automaticallyChecksForUpdates },
+                set: { updater.automaticallyChecksForUpdates = $0 }
+            ))
         }
         .padding()
-        .frame(width: 400, height: 200)
     }
 }

@@ -6,6 +6,10 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3B1A57412F57306E00972FD8 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 3B5A00022F60000000AABB02 /* Sparkle */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3B1A56CE2F5714B400972FD8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -18,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		3B1A56CA2F5714B400972FD8 /* MCP InspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MCP InspectorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B1A57B02F57528600972FD8 /* MCP-Inspector-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "MCP-Inspector-Info.plist"; sourceTree = "<group>"; };
 		3B2804532F30585A00E15514 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A2000000 /* MCP Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MCP Inspector.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -39,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B1A57412F57306E00972FD8 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,6 +54,7 @@
 		A4000000 = {
 			isa = PBXGroup;
 			children = (
+				3B1A57B02F57528600972FD8 /* MCP-Inspector-Info.plist */,
 				3B2804532F30585A00E15514 /* README.md */,
 				3B28043F2F30582400E15514 /* MCPInspector */,
 				3B1A56CB2F5714B400972FD8 /* MCP InspectorTests */,
@@ -106,6 +113,9 @@
 				3B28043F2F30582400E15514 /* MCPInspector */,
 			);
 			name = "MCP Inspector";
+			packageProductDependencies = (
+				3B5A00022F60000000AABB02 /* Sparkle */,
+			);
 			productName = "MCP Inspector";
 			productReference = A2000000 /* MCP Inspector.app */;
 			productType = "com.apple.product-type.application";
@@ -138,6 +148,9 @@
 				Base,
 			);
 			mainGroup = A4000000;
+			packageReferences = (
+				3B5A00012F60000000AABB01 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			productRefGroup = A4000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -364,7 +377,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 46UKXDYHHC;
@@ -372,6 +385,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "MCP-Inspector-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "MCP Inspector";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -380,7 +394,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.subpop.MCPInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -398,7 +412,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 46UKXDYHHC;
@@ -406,6 +420,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "MCP-Inspector-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "MCP Inspector";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -414,7 +429,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.subpop.MCPInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -454,6 +469,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3B5A00012F60000000AABB01 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3B5A00022F60000000AABB02 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B5A00012F60000000AABB01 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A7000000 /* Project object */;
 }
