@@ -27,7 +27,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/subpop/mcpinspector/releases/download/v1.1.0/MCP%20Inspector-1.1.0.dmg" length="2732544" type="application/octet-stream" sparkle:edSignature="TqLfL1uaPFuDS3KMjn4ETVvxilUU5wW4Q97o/u+JnE9pjlk//zNwt9SETDv5Nm3cOivme24aJxymM7OIR2ZMBA=="/>
+            <enclosure url="https://github.com/subpop/mcpinspector/releases/download/v1.0.0/MCP%20Inspector-1.0.dmg" length="2732544" type="application/octet-stream" sparkle:edSignature="TqLfL1uaPFuDS3KMjn4ETVvxilUU5wW4Q97o/u+JnE9pjlk//zNwt9SETDv5Nm3cOivme24aJxymM7OIR2ZMBA=="/>
             <description><![CDATA[<div>
 <h2>1.0 (1) (2026-02-26)</h2>
 <ul>

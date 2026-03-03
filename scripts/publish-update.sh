@@ -131,8 +131,8 @@ fi
 # Inject changelog into appcast (only the first </item>, which is the new entry)
 perl -i -0pe "s{</item>}{<description><![CDATA[$FULL_CHANGELOG_HTML]]></description>\n</item>}" "$APPCAST_FILE"
 
-# Replace enclosure URL with the GitHub Release URL
-perl -i -pe "s{<enclosure url=\"[^\"]*\"}{<enclosure url=\"$CORRECT_URL\"}g" "$APPCAST_FILE"
+# Replace enclosure URL with the GitHub Release URL (only the first enclosure = new entry)
+perl -i -0pe "s{<enclosure url=\"[^\"]*\"}{<enclosure url=\"$CORRECT_URL\"}" "$APPCAST_FILE"
 
 # Ask for final confirmation before publishing
 echo -n "Proceed with publishing to GitHub (Release + Pages)? (y/n)? "
