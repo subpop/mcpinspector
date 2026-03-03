@@ -47,6 +47,16 @@ fi
 
 SELECTED_BUILD_DIR="$BUILD_DIR/$SELECTED_BUILD_NAME"
 APP_BUNDLE="$SELECTED_BUILD_DIR/$NAME.app"
+
+# Extract version and build number
+VERSION=$(defaults read "$APP_BUNDLE/Contents/Info.plist" CFBundleShortVersionString)
+BUILD=$(defaults read "$APP_BUNDLE/Contents/Info.plist" CFBundleVersion)
+
+if [[ -z "$VERSION" || -z "$BUILD" ]]; then
+    echo "❌ Failed to extract version or build number!" >&2
+    exit 1
+fi
+
 DMG_FILE="${APP_BUNDLE%.app}-$VERSION.dmg"
 
 echo "✅ Selected build: $SELECTED_BUILD_NAME" >&2
@@ -62,15 +72,6 @@ if [[ -f "$DMG_FILE" ]]; then
     fi
     echo "🗑️ Deleting existing DMG..." >&2
     rm "$DMG_FILE"
-fi
-
-# Extract version and build number
-VERSION=$(defaults read "$APP_BUNDLE/Contents/Info.plist" CFBundleShortVersionString)
-BUILD=$(defaults read "$APP_BUNDLE/Contents/Info.plist" CFBundleVersion)
-
-if [[ -z "$VERSION" || -z "$BUILD" ]]; then
-    echo "❌ Failed to extract version or build number!" >&2
-    exit 1
 fi
 
 echo "📦 Building & notarizing DMG..." >&2
