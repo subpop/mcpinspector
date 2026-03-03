@@ -1,9 +1,12 @@
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
 
 @main
 struct MCPInspectorApp: App {
     @StateObject private var appState = AppState()
+    @FocusedValue(\.selectedServerConfiguration) private var selectedConfig
+    @FocusedValue(\.showExportSheet) private var showExportSheet
     
     var body: some Scene {
         WindowGroup {
@@ -12,11 +15,29 @@ struct MCPInspectorApp: App {
         }
         .windowStyle(.automatic)
         .defaultSize(width: 800, height: 650)
+        .commands {
+            CommandGroup(after: .newItem) {
+                Section {
+                    Button("Export…") {
+                        showExportSheet?.wrappedValue = true
+                    }
+                    .disabled(selectedConfig == nil)
+                    .keyboardShortcut("e", modifiers: [.command, .shift])
+                }
+            }
+        }
 
         Settings {
             SettingsView()
         }
     }
+}
+
+// MARK: - Focused Values
+
+extension FocusedValues {
+    @Entry var selectedServerConfiguration: ServerConfiguration? = nil
+    @Entry var showExportSheet: Binding<Bool>? = nil
 }
 
 /// Global application state shared across views

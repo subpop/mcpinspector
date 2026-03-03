@@ -6,16 +6,35 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		3B1A56CE2F5714B400972FD8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A7000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5000000;
+			remoteInfo = "MCP Inspector";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		3B1A56CA2F5714B400972FD8 /* MCP InspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MCP InspectorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B2804532F30585A00E15514 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A2000000 /* MCP Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MCP Inspector.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		3B1A56CB2F5714B400972FD8 /* MCP InspectorTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "MCP InspectorTests"; sourceTree = "<group>"; };
 		3B28043F2F30582400E15514 /* MCPInspector */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = MCPInspector; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3B1A56C72F5714B400972FD8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -31,6 +50,7 @@
 			children = (
 				3B2804532F30585A00E15514 /* README.md */,
 				3B28043F2F30582400E15514 /* MCPInspector */,
+				3B1A56CB2F5714B400972FD8 /* MCP InspectorTests */,
 				A4000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000000 /* MCP Inspector.app */,
+				3B1A56CA2F5714B400972FD8 /* MCP InspectorTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -46,6 +67,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3B1A56C92F5714B400972FD8 /* MCP InspectorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B1A56D02F5714B400972FD8 /* Build configuration list for PBXNativeTarget "MCP InspectorTests" */;
+			buildPhases = (
+				3B1A56C62F5714B400972FD8 /* Sources */,
+				3B1A56C72F5714B400972FD8 /* Frameworks */,
+				3B1A56C82F5714B400972FD8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3B1A56CF2F5714B400972FD8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3B1A56CB2F5714B400972FD8 /* MCP InspectorTests */,
+			);
+			name = "MCP InspectorTests";
+			packageProductDependencies = (
+			);
+			productName = "MCP InspectorTests";
+			productReference = 3B1A56CA2F5714B400972FD8 /* MCP InspectorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		A5000000 /* MCP Inspector */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A6000002 /* Build configuration list for PBXNativeTarget "MCP Inspector" */;
@@ -73,9 +117,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					3B1A56C92F5714B400972FD8 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = A5000000;
+					};
 					A5000000 = {
 						CreatedOnToolsVersion = 15.0;
 					};
@@ -95,11 +143,19 @@
 			projectRoot = "";
 			targets = (
 				A5000000 /* MCP Inspector */,
+				3B1A56C92F5714B400972FD8 /* MCP InspectorTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3B1A56C82F5714B400972FD8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000002 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -110,6 +166,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3B1A56C62F5714B400972FD8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A3000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -119,7 +182,57 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		3B1A56CF2F5714B400972FD8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5000000 /* MCP Inspector */;
+			targetProxy = 3B1A56CE2F5714B400972FD8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3B1A56D12F5714B400972FD8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46UKXDYHHC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.subpop.MCP-InspectorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MCP Inspector.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MCP Inspector";
+			};
+			name = Debug;
+		};
+		3B1A56D22F5714B400972FD8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46UKXDYHHC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "app.subpop.MCP-InspectorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MCP Inspector.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MCP Inspector";
+			};
+			name = Release;
+		};
 		A8000000 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -313,6 +426,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3B1A56D02F5714B400972FD8 /* Build configuration list for PBXNativeTarget "MCP InspectorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B1A56D12F5714B400972FD8 /* Debug */,
+				3B1A56D22F5714B400972FD8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A6000000 /* Build configuration list for PBXProject "MCP Inspector" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

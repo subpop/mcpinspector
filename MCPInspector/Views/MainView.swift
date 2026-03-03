@@ -5,10 +5,16 @@ struct MainView: View {
     @State private var selectedServerId: UUID?
     @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
     @State private var showingAddSheet = false
+    @State private var showingExportSheet = false
     @State private var editingConfiguration: ServerConfiguration?
     
     private var hasServers: Bool {
         !appState.configurationStore.configurations.isEmpty
+    }
+    
+    private var selectedConfiguration: ServerConfiguration? {
+        guard let id = selectedServerId else { return nil }
+        return appState.configurationStore.configuration(withId: id)
     }
     
     var body: some View {
@@ -18,6 +24,8 @@ struct MainView: View {
             detailView
         }
         .navigationSplitViewStyle(.balanced)
+        .focusedSceneValue(\.selectedServerConfiguration, selectedConfiguration)
+        .focusedSceneValue(\.showExportSheet, $showingExportSheet)
         .onChange(of: hasServers) { _, newValue in
             columnVisibility = newValue ? .all : .detailOnly
         }
@@ -31,6 +39,11 @@ struct MainView: View {
         }
         .sheet(item: $editingConfiguration) { config in
             ServerConfigEditView(mode: .edit(config))
+        }
+        .sheet(isPresented: $showingExportSheet) {
+            if let config = selectedConfiguration {
+                ExportSheet(configuration: config)
+            }
         }
     }
     
