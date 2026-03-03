@@ -1,7 +1,25 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
-        <title>MCP Inspector</title>
+        <item>
+            <title>1.1.0</title>
+            <pubDate>Tue, 03 Mar 2026 13:45:07 -0500</pubDate>
+            <link>https://subpop.github.io/mcpinspector</link>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/subpop/mcpinspector/releases/download/v1.1.0/MCP%20Inspector-1.1.0.dmg" length="3696843" type="application/octet-stream" sparkle:edSignature="tNzgmn6cPGtLIdirP7TAzKdR3iRF/uu69YiMTB6iuKdPuzrZ5UuW5dxL3m6ZLQEf3hVEcQxoeHhNCjy9bSNVDg=="/>
+        <description><![CDATA[<div>
+    <h2>1.1.0 (2) (2026-03-03)</h2>
+<ul>
+<li>🚀 Application now checks for updates automatically</li>
+<li>📦 Server configuration can be exported in other client formats
+(VSCode, Cursor, Codex, Claude Code, etc.)</li>
+<li>🪩 Minor updates to the app icon</li>
+<li>🐛 Minor bug fixes and improvements</li>
+</ul>
+</div>]]></description>
+</item>
         <item>
             <title>1.0</title>
             <pubDate>Thu, 26 Feb 2026</pubDate>
@@ -9,7 +27,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/subpop/mcpinspector/releases/download/v1.0.0/MCP%20Inspector-1.0.dmg" length="2732544" type="application/octet-stream" sparkle:edSignature="TqLfL1uaPFuDS3KMjn4ETVvxilUU5wW4Q97o/u+JnE9pjlk//zNwt9SETDv5Nm3cOivme24aJxymM7OIR2ZMBA=="/>
+            <enclosure url="https://github.com/subpop/mcpinspector/releases/download/v1.1.0/MCP%20Inspector-1.1.0.dmg" length="2732544" type="application/octet-stream" sparkle:edSignature="TqLfL1uaPFuDS3KMjn4ETVvxilUU5wW4Q97o/u+JnE9pjlk//zNwt9SETDv5Nm3cOivme24aJxymM7OIR2ZMBA=="/>
             <description><![CDATA[<div>
 <h2>1.0 (1) (2026-02-26)</h2>
 <ul>
@@ -17,5 +35,4 @@
 </ul>
 </div>]]></description>
         </item>
-    </channel>
-</rss>
+</channel></rss>
