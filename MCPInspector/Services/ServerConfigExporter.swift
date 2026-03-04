@@ -36,26 +36,48 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .genericJSON: return "mcp-servers.json"
         }
     }
+
+    var supportsCLI: Bool {
+        switch self {
+        case .claudeCode, .codex, .geminiCLI: return true
+        default: return false
+        }
+    }
 }
 
-/// Exports MCP server configurations in various tool-specific formats
-struct ServerConfigExporter {
+// MARK: - Server Configuration Export
 
-    /// Export a single server configuration in the specified format
-    static func export(_ config: ServerConfiguration, format: ExportFormat) -> String {
+extension ServerConfiguration {
+
+    /// Export this server configuration as a string in the specified format
+    func exported(as format: ExportFormat) -> String {
         switch format {
         case .vscode:
-            return exportVSCode(config)
+            return exportedAsVSCode()
         case .cursor:
-            return exportCursor(config)
+            return exportedAsCursor()
         case .claudeCode:
-            return exportClaudeCode(config)
+            return exportedAsClaudeCode()
         case .codex:
-            return exportCodex(config)
+            return exportedAsCodex()
         case .geminiCLI:
-            return exportGeminiCLI(config)
+            return exportedAsGeminiCLI()
         case .genericJSON:
-            return exportGenericJSON(config)
+            return exportedAsGenericJSON()
+        }
+    }
+
+    /// Generate a CLI command to add the server, if the format supports it
+    func cliCommand(for format: ExportFormat) -> String? {
+        switch format {
+        case .claudeCode:
+            return claudeCodeCLICommand()
+        case .codex:
+            return codexCLICommand()
+        case .geminiCLI:
+            return geminiCLICommand()
+        default:
+            return nil
         }
     }
 
@@ -63,21 +85,21 @@ struct ServerConfigExporter {
 
     /// VS Code uses `"servers"` as the top-level key with an explicit `"type": "stdio"` field.
     /// File: `.vscode/mcp.json`
-    private static func exportVSCode(_ config: ServerConfiguration) -> String {
+    private func exportedAsVSCode() -> String {
         var server: OrderedDict = [
             ("type", .string("stdio")),
-            ("command", .string(config.command)),
+            ("command", .string(command)),
         ]
-        if !config.arguments.isEmpty {
-            server.append(("args", .array(config.arguments.map { .string($0) })))
+        if !arguments.isEmpty {
+            server.append(("args", .array(arguments.map { .string($0) })))
         }
-        if !config.environmentVariables.isEmpty {
-            server.append(("env", .object(config.environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        if !environmentVariables.isEmpty {
+            server.append(("env", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
         }
 
         let root: OrderedDict = [
             ("servers", .object([
-                (config.name, .object(server))
+                (name, .object(server))
             ]))
         ]
         return renderJSON(root)
@@ -87,20 +109,20 @@ struct ServerConfigExporter {
 
     /// Cursor uses `"mcpServers"` as the top-level key, no explicit type needed.
     /// File: `.cursor/mcp.json`
-    private static func exportCursor(_ config: ServerConfiguration) -> String {
+    private func exportedAsCursor() -> String {
         var server: OrderedDict = [
-            ("command", .string(config.command)),
+            ("command", .string(command)),
         ]
-        if !config.arguments.isEmpty {
-            server.append(("args", .array(config.arguments.map { .string($0) })))
+        if !arguments.isEmpty {
+            server.append(("args", .array(arguments.map { .string($0) })))
         }
-        if !config.environmentVariables.isEmpty {
-            server.append(("env", .object(config.environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        if !environmentVariables.isEmpty {
+            server.append(("env", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
         }
 
         let root: OrderedDict = [
             ("mcpServers", .object([
-                (config.name, .object(server))
+                (name, .object(server))
             ]))
         ]
         return renderJSON(root)
@@ -110,21 +132,21 @@ struct ServerConfigExporter {
 
     /// Claude Code uses `"mcpServers"` with `"type": "stdio"`.
     /// File: `.mcp.json`
-    private static func exportClaudeCode(_ config: ServerConfiguration) -> String {
+    private func exportedAsClaudeCode() -> String {
         var server: OrderedDict = [
             ("type", .string("stdio")),
-            ("command", .string(config.command)),
+            ("command", .string(command)),
         ]
-        if !config.arguments.isEmpty {
-            server.append(("args", .array(config.arguments.map { .string($0) })))
+        if !arguments.isEmpty {
+            server.append(("args", .array(arguments.map { .string($0) })))
         }
-        if !config.environmentVariables.isEmpty {
-            server.append(("env", .object(config.environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        if !environmentVariables.isEmpty {
+            server.append(("env", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
         }
 
         let root: OrderedDict = [
             ("mcpServers", .object([
-                (config.name, .object(server))
+                (name, .object(server))
             ]))
         ]
         return renderJSON(root)
@@ -134,19 +156,19 @@ struct ServerConfigExporter {
 
     /// Codex uses TOML format with `[mcp_servers.<name>]` sections.
     /// File: `.codex/config.toml`
-    private static func exportCodex(_ config: ServerConfiguration) -> String {
+    private func exportedAsCodex() -> String {
         var lines: [String] = []
-        let sanitizedName = config.name.replacingOccurrences(of: " ", with: "-").lowercased()
+        let sanitizedName = name.replacingOccurrences(of: " ", with: "-").lowercased()
         lines.append("[mcp_servers.\(sanitizedName)]")
-        lines.append("command = \(tomlQuote(config.command))")
+        lines.append("command = \(tomlQuote(command))")
 
-        if !config.arguments.isEmpty {
-            let args = config.arguments.map { tomlQuote($0) }.joined(separator: ", ")
+        if !arguments.isEmpty {
+            let args = arguments.map { tomlQuote($0) }.joined(separator: ", ")
             lines.append("args = [\(args)]")
         }
 
-        if !config.environmentVariables.isEmpty {
-            let pairs = config.environmentVariables.sorted(by: { $0.key < $1.key }).map { "\($0.key) = \(tomlQuote($0.value))" }.joined(separator: ", ")
+        if !environmentVariables.isEmpty {
+            let pairs = environmentVariables.sorted(by: { $0.key < $1.key }).map { "\($0.key) = \(tomlQuote($0.value))" }.joined(separator: ", ")
             lines.append("env = { \(pairs) }")
         }
 
@@ -158,20 +180,20 @@ struct ServerConfigExporter {
 
     /// Gemini CLI uses `"mcpServers"` inside `settings.json`, no explicit type needed.
     /// File: `.gemini/settings.json`
-    private static func exportGeminiCLI(_ config: ServerConfiguration) -> String {
+    private func exportedAsGeminiCLI() -> String {
         var server: OrderedDict = [
-            ("command", .string(config.command)),
+            ("command", .string(command)),
         ]
-        if !config.arguments.isEmpty {
-            server.append(("args", .array(config.arguments.map { .string($0) })))
+        if !arguments.isEmpty {
+            server.append(("args", .array(arguments.map { .string($0) })))
         }
-        if !config.environmentVariables.isEmpty {
-            server.append(("env", .object(config.environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        if !environmentVariables.isEmpty {
+            server.append(("env", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
         }
 
         let root: OrderedDict = [
             ("mcpServers", .object([
-                (config.name, .object(server))
+                (name, .object(server))
             ]))
         ]
         return renderJSON(root)
@@ -180,26 +202,91 @@ struct ServerConfigExporter {
     // MARK: - Generic JSON
 
     /// A generic format with all fields.
-    private static func exportGenericJSON(_ config: ServerConfiguration) -> String {
+    private func exportedAsGenericJSON() -> String {
         var server: OrderedDict = [
-            ("command", .string(config.command)),
+            ("command", .string(command)),
         ]
-        if !config.arguments.isEmpty {
-            server.append(("args", .array(config.arguments.map { .string($0) })))
+        if !arguments.isEmpty {
+            server.append(("args", .array(arguments.map { .string($0) })))
         }
-        if !config.environmentVariables.isEmpty {
-            server.append(("env", .object(config.environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        if !environmentVariables.isEmpty {
+            server.append(("env", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
         }
 
         let root: OrderedDict = [
-            (config.name, .object(server))
+            (name, .object(server))
         ]
         return renderJSON(root)
     }
 
+    // MARK: - CLI Commands
+
+    /// `claude mcp add <name> [-e KEY=VAL ...] -- <command> [args...]`
+    private func claudeCodeCLICommand() -> String {
+        var parts = ["claude", "mcp", "add", shellEscape(name)]
+
+        for (key, value) in environmentVariables.sorted(by: { $0.key < $1.key }) {
+            parts.append("-e")
+            parts.append(shellEscape("\(key)=\(value)"))
+        }
+
+        parts.append("--")
+        parts.append(shellEscape(command))
+
+        for arg in arguments {
+            parts.append(shellEscape(arg))
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    /// `codex mcp add <name> [--env KEY=VAL...] -- <command> [args...]`
+    private func codexCLICommand() -> String {
+        var parts = ["codex", "mcp", "add", shellEscape(name)]
+
+        for (key, value) in environmentVariables.sorted(by: { $0.key < $1.key }) {
+            parts.append("--env")
+            parts.append(shellEscape("\(key)=\(value)"))
+        }
+
+        parts.append("--")
+        parts.append(shellEscape(command))
+
+        for arg in arguments {
+            parts.append(shellEscape(arg))
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    /// `gemini mcp add <name <command>`
+    private func geminiCLICommand() -> String {
+        var parts = ["gemini", "mcp", "add", shellEscape(name)]
+
+        parts.append(shellEscape(command))
+
+        for arg in arguments {
+            parts.append(shellEscape(arg))
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    // MARK: - Shell Helpers
+
+    private func shellEscape(_ s: String) -> String {
+        if s.isEmpty { return "''" }
+        let safeChars = CharacterSet.alphanumerics
+            .union(CharacterSet(charactersIn: "-_./=@:,+"))
+        if s.unicodeScalars.allSatisfy({ safeChars.contains($0) }) {
+            return s
+        }
+        return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
     // MARK: - TOML Helpers
 
-    private static func tomlQuote(_ s: String) -> String {
+    private func tomlQuote(_ s: String) -> String {
         let escaped = s
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
@@ -217,11 +304,11 @@ struct ServerConfigExporter {
 
     private typealias OrderedDict = [(String, JSONValue)]
 
-    private static func renderJSON(_ value: OrderedDict, indent: Int = 0) -> String {
+    private func renderJSON(_ value: OrderedDict, indent: Int = 0) -> String {
         renderValue(.object(value), indent: indent)
     }
 
-    private static func renderValue(_ value: JSONValue, indent: Int) -> String {
+    private func renderValue(_ value: JSONValue, indent: Int) -> String {
         let pad = String(repeating: "  ", count: indent)
         let innerPad = String(repeating: "  ", count: indent + 1)
 
@@ -243,7 +330,7 @@ struct ServerConfigExporter {
         }
     }
 
-    private static func escapeJSON(_ s: String) -> String {
+    private func escapeJSON(_ s: String) -> String {
         s.replacingOccurrences(of: "\\", with: "\\\\")
          .replacingOccurrences(of: "\"", with: "\\\"")
          .replacingOccurrences(of: "\n", with: "\\n")

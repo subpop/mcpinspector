@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import MCP_Inspector
 
-struct ServerConfigExporterTests {
+struct ServerConfigurationExportTests {
     
     // A full config with command, args, and env vars
     private let fullConfig = ServerConfiguration(
@@ -23,7 +23,7 @@ struct ServerConfigExporterTests {
     // MARK: - VS Code
     
     @Test func vsCodeExportUsesServersKey() {
-        let output = ServerConfigExporter.export(fullConfig, format: .vscode)
+        let output = fullConfig.exported(as: .vscode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         
         #expect(json["servers"] != nil)
@@ -31,7 +31,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func vsCodeExportIncludesTypeStdio() {
-        let output = ServerConfigExporter.export(fullConfig, format: .vscode)
+        let output = fullConfig.exported(as: .vscode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let servers = json["servers"] as! [String: Any]
         let server = servers["test-server"] as! [String: Any]
@@ -40,7 +40,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func vsCodeExportFullConfig() {
-        let output = ServerConfigExporter.export(fullConfig, format: .vscode)
+        let output = fullConfig.exported(as: .vscode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let servers = json["servers"] as! [String: Any]
         let server = servers["test-server"] as! [String: Any]
@@ -54,7 +54,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func vsCodeExportMinimalConfig() {
-        let output = ServerConfigExporter.export(minimalConfig, format: .vscode)
+        let output = minimalConfig.exported(as: .vscode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let servers = json["servers"] as! [String: Any]
         let server = servers["minimal"] as! [String: Any]
@@ -67,7 +67,7 @@ struct ServerConfigExporterTests {
     // MARK: - Cursor
     
     @Test func cursorExportUsesMcpServersKey() {
-        let output = ServerConfigExporter.export(fullConfig, format: .cursor)
+        let output = fullConfig.exported(as: .cursor)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         
         #expect(json["mcpServers"] != nil)
@@ -75,7 +75,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func cursorExportOmitsType() {
-        let output = ServerConfigExporter.export(fullConfig, format: .cursor)
+        let output = fullConfig.exported(as: .cursor)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -84,7 +84,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func cursorExportFullConfig() {
-        let output = ServerConfigExporter.export(fullConfig, format: .cursor)
+        let output = fullConfig.exported(as: .cursor)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -100,14 +100,14 @@ struct ServerConfigExporterTests {
     // MARK: - Claude Code
     
     @Test func claudeCodeExportUsesMcpServersKey() {
-        let output = ServerConfigExporter.export(fullConfig, format: .claudeCode)
+        let output = fullConfig.exported(as: .claudeCode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         
         #expect(json["mcpServers"] != nil)
     }
     
     @Test func claudeCodeExportIncludesTypeStdio() {
-        let output = ServerConfigExporter.export(fullConfig, format: .claudeCode)
+        let output = fullConfig.exported(as: .claudeCode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -116,7 +116,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func claudeCodeExportFullConfig() {
-        let output = ServerConfigExporter.export(fullConfig, format: .claudeCode)
+        let output = fullConfig.exported(as: .claudeCode)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -131,20 +131,20 @@ struct ServerConfigExporterTests {
     // MARK: - Codex (TOML)
     
     @Test func codexExportIsTOML() {
-        let output = ServerConfigExporter.export(fullConfig, format: .codex)
+        let output = fullConfig.exported(as: .codex)
         
         #expect(output.contains("[mcp_servers.test-server]"))
         #expect(output.contains("command = \"npx\""))
     }
     
     @Test func codexExportIncludesArgs() {
-        let output = ServerConfigExporter.export(fullConfig, format: .codex)
+        let output = fullConfig.exported(as: .codex)
         
         #expect(output.contains("args = [\"-y\", \"@modelcontextprotocol/server-everything\"]"))
     }
     
     @Test func codexExportIncludesEnv() {
-        let output = ServerConfigExporter.export(fullConfig, format: .codex)
+        let output = fullConfig.exported(as: .codex)
         
         #expect(output.contains("env = {"))
         #expect(output.contains("API_KEY = \"abc123\""))
@@ -158,13 +158,13 @@ struct ServerConfigExporterTests {
             arguments: ["server.js"],
             environmentVariables: [:]
         )
-        let output = ServerConfigExporter.export(config, format: .codex)
+        let output = config.exported(as: .codex)
         
         #expect(output.contains("[mcp_servers.my-test-server]"))
     }
     
     @Test func codexExportMinimalConfig() {
-        let output = ServerConfigExporter.export(minimalConfig, format: .codex)
+        let output = minimalConfig.exported(as: .codex)
         
         #expect(output.contains("[mcp_servers.minimal]"))
         #expect(output.contains("command = \"/usr/bin/my-server\""))
@@ -175,14 +175,14 @@ struct ServerConfigExporterTests {
     // MARK: - Gemini CLI
     
     @Test func geminiCLIExportUsesMcpServersKey() {
-        let output = ServerConfigExporter.export(fullConfig, format: .geminiCLI)
+        let output = fullConfig.exported(as: .geminiCLI)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         
         #expect(json["mcpServers"] != nil)
     }
     
     @Test func geminiCLIExportOmitsType() {
-        let output = ServerConfigExporter.export(fullConfig, format: .geminiCLI)
+        let output = fullConfig.exported(as: .geminiCLI)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -191,7 +191,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func geminiCLIExportFullConfig() {
-        let output = ServerConfigExporter.export(fullConfig, format: .geminiCLI)
+        let output = fullConfig.exported(as: .geminiCLI)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let mcpServers = json["mcpServers"] as! [String: Any]
         let server = mcpServers["test-server"] as! [String: Any]
@@ -207,7 +207,7 @@ struct ServerConfigExporterTests {
     // MARK: - Generic JSON
     
     @Test func genericJSONExportUsesServerNameAsKey() {
-        let output = ServerConfigExporter.export(fullConfig, format: .genericJSON)
+        let output = fullConfig.exported(as: .genericJSON)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         
         #expect(json["test-server"] != nil)
@@ -216,7 +216,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func genericJSONExportOmitsType() {
-        let output = ServerConfigExporter.export(fullConfig, format: .genericJSON)
+        let output = fullConfig.exported(as: .genericJSON)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let server = json["test-server"] as! [String: Any]
         
@@ -224,7 +224,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func genericJSONExportFullConfig() {
-        let output = ServerConfigExporter.export(fullConfig, format: .genericJSON)
+        let output = fullConfig.exported(as: .genericJSON)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let server = json["test-server"] as! [String: Any]
         
@@ -237,7 +237,7 @@ struct ServerConfigExporterTests {
     }
     
     @Test func genericJSONExportMinimalConfig() {
-        let output = ServerConfigExporter.export(minimalConfig, format: .genericJSON)
+        let output = minimalConfig.exported(as: .genericJSON)
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
         let server = json["minimal"] as! [String: Any]
         
@@ -255,7 +255,7 @@ struct ServerConfigExporterTests {
             arguments: [],
             environmentVariables: ["PROMPT": "say \"hello\"\nworld"]
         )
-        let output = ServerConfigExporter.export(config, format: .genericJSON)
+        let output = config.exported(as: .genericJSON)
         
         // Should be valid JSON even with special characters
         let json = try! JSONSerialization.jsonObject(with: Data(output.utf8)) as! [String: Any]
@@ -286,7 +286,7 @@ struct ServerConfigExporterTests {
     
     @Test func allFormatsProduceNonEmptyOutput() {
         for format in ExportFormat.allCases {
-            let output = ServerConfigExporter.export(fullConfig, format: format)
+            let output = fullConfig.exported(as: format)
             #expect(!output.isEmpty, "Export for \(format.rawValue) should not be empty")
         }
     }
@@ -294,7 +294,7 @@ struct ServerConfigExporterTests {
     @Test func allJSONFormatsProduceValidJSON() {
         let jsonFormats = ExportFormat.allCases.filter { $0 != .codex }
         for format in jsonFormats {
-            let output = ServerConfigExporter.export(fullConfig, format: format)
+            let output = fullConfig.exported(as: format)
             let parsed = try? JSONSerialization.jsonObject(with: Data(output.utf8))
             #expect(parsed != nil, "Export for \(format.rawValue) should produce valid JSON")
         }

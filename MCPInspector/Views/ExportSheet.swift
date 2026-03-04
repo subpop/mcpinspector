@@ -7,9 +7,14 @@ struct ExportSheet: View {
 
     @State private var selectedFormat: ExportFormat = .vscode
     @State private var copied = false
+    @State private var cliCopied = false
 
     private var exportedContent: String {
-        ServerConfigExporter.export(configuration, format: selectedFormat)
+        configuration.exported(as: selectedFormat)
+    }
+
+    private var cliCommand: String? {
+        configuration.cliCommand(for: selectedFormat)
     }
 
     var body: some View {
@@ -20,13 +25,16 @@ struct ExportSheet: View {
             VStack(spacing: 16) {
                 formatPicker
                 preview
+                if let cliCommand {
+                    cliSection(command: cliCommand)
+                }
             }
             .padding()
 
             Divider()
             footer
         }
-        .frame(width: 560, height: 480)
+        .frame(width: 560, height: 560)
     }
 
     // MARK: - Header
@@ -70,19 +78,19 @@ struct ExportSheet: View {
     private var preview: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("Preview")
+                Text("Configuration")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
                 Spacer()
 
-                Text(selectedFormat.suggestedFilename)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.secondary.opacity(0.12))
-                    .cornerRadius(4)
+                Button {
+                    copyToClipboard()
+                } label: {
+                    Label(copied ? "Copied!" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
             }
 
             GeometryReader { geometry in
@@ -118,13 +126,6 @@ struct ExportSheet: View {
 
             Spacer()
 
-            Button {
-                copyToClipboard()
-            } label: {
-                Label(copied ? "Copied!" : "Copy to Clipboard", systemImage: copied ? "checkmark" : "doc.on.doc")
-            }
-            .buttonStyle(.bordered)
-
             Button("Save to File…") {
                 saveToFile()
             }
@@ -133,7 +134,52 @@ struct ExportSheet: View {
         .padding()
     }
 
+    // MARK: - CLI Command
+
+    private func cliSection(command: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("Command", systemImage: "terminal")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Button {
+                    copyCLIToClipboard(command)
+                } label: {
+                    Label(cliCopied ? "Copied!" : "Copy", systemImage: cliCopied ? "checkmark" : "doc.on.doc")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                Text(command)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(nsColor: .textBackgroundColor))
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.secondary.opacity(0.2))
+            )
+        }
+    }
+
     // MARK: - Actions
+
+    private func copyCLIToClipboard(_ command: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(command, forType: .string)
+        cliCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            cliCopied = false
+        }
+    }
 
     private func copyToClipboard() {
         NSPasteboard.general.clearContents()
