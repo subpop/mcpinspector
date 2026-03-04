@@ -194,6 +194,7 @@ struct ExportSheet: View {
         let panel = NSSavePanel()
         panel.title = "Export for \(selectedFormat.rawValue)"
         panel.nameFieldStringValue = selectedFormat.suggestedFilename
+        panel.isExtensionHidden = false
         panel.allowedContentTypes = [selectedFormat.contentType]
         panel.canCreateDirectories = true
 
