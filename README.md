@@ -11,10 +11,11 @@ A native macOS application for inspecting and debugging [Model Context Protocol 
 - **Resources Browser** — Browse resources with URI and MIME type information
 - **JSON-RPC Logs** — Full visibility into all messages sent and received, with filtering by direction (requests/responses/stderr) and search
 - **Log Export** — Save logs to JSON for offline analysis
+- **Configuration Export** - Save configuration data in formats for popular clients (Visual Studio Code, Cursor, Claude Code, Gemini, Codex)
 
 ## Installation
 
-MCP Inspector is currently available by compiling from source.
+Download the latest release [here](https://github.com/subpop/mcpinspector/releases/latest). It is currently available by compiling from source.
 
 ### Requirements
 
