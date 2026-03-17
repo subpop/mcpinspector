@@ -61,6 +61,22 @@ class AppState: ObservableObject {
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+        
+        configurationStore.$configurations
+            .receive(on: RunLoop.main)
+            .sink { [weak self] configurations in
+                self?.syncSessionConfigurations(configurations)
+            }
+            .store(in: &cancellables)
+    }
+    
+    /// Update existing sessions when their configurations change in the store
+    private func syncSessionConfigurations(_ configurations: [ServerConfiguration]) {
+        for config in configurations {
+            if let session = sessions[config.id], session.configuration != config {
+                session.configuration = config
+            }
+        }
     }
     
     /// Get or create a session for the given configuration

@@ -5,7 +5,7 @@ import Combine
 /// Multiple ServerSession instances can exist simultaneously for concurrent server connections.
 @MainActor
 class ServerSession: ObservableObject, @MainActor Identifiable {
-    let configuration: ServerConfiguration
+    @Published var configuration: ServerConfiguration
     
     var id: UUID { configuration.id }
     
