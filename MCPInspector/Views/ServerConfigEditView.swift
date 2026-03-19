@@ -59,12 +59,14 @@ struct ServerConfigEditView: View {
                 Section("Environment Variables") {
                     ForEach($envVariables) { $envVar in
                         HStack {
-                            TextField("Key", text: $envVar.key)
-                                .frame(maxWidth: 150)
+                            TextField("", text: $envVar.key, prompt: Text("NAME"))
+                                .font(.system(.body, design: .monospaced))
                             Text("=")
                                 .foregroundColor(.secondary)
-                            TextField("Value", text: $envVar.value)
-                            
+                                .font(.system(.body, design: .monospaced))
+                            TextField("", text: $envVar.value, prompt: Text("VALUE"))
+                                .font(.system(.body, design: .monospaced))
+
                             Button(action: { removeEnvVariable(envVar) }) {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundColor(.red)
