@@ -63,7 +63,6 @@ struct MainView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(.bar)
         }
         .navigationTitle("MCP Inspector")
         .frame(minWidth: 220)
@@ -169,17 +168,12 @@ struct MainView: View {
     
     private var welcomeView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "server.rack")
-                .font(.system(size: 64))
-                .foregroundColor(.secondary)
-            
-            Text("MCP Inspector")
-                .font(.largeTitle)
-                .fontWeight(.semibold)
-            
-            Text("Select a server from the sidebar to get started.")
-                .foregroundColor(.secondary)
-            
+            ContentUnavailableView {
+                Label("MCP Inspector", systemImage: "server.rack")
+            } description: {
+                Text("Select a server from the sidebar to get started.")
+            }
+
             if appState.configurationStore.configurations.isEmpty {
                 Divider()
                     .frame(width: 200)
