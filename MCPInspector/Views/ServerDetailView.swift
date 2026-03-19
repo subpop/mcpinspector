@@ -41,6 +41,16 @@ struct ServerDetailView: View {
         }
         .navigationTitle(session.configuration.name)
         .toolbar {
+            if session.connectionState == .connected {
+                ToolbarItem(placement: .principal) {
+                    Picker("Tab", selection: $selectedTab) {
+                        ForEach(DetailTab.allCases) { tab in
+                            Label(tab.rawValue, systemImage: tab.icon).tag(tab)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
             ToolbarItemGroup(placement: .primaryAction) {
                 toolbarButtons
             }
@@ -153,60 +163,7 @@ struct ServerDetailView: View {
     // MARK: - Connected View (tabbed)
     
     private var connectedView: some View {
-        VStack(spacing: 0) {
-            tabBar
-            
-            Divider()
-            
-            tabContent
-        }
-    }
-    
-    private var tabBar: some View {
-        HStack(spacing: 0) {
-            ForEach(DetailTab.allCases) { tab in
-                let badgeCount = badgeCount(for: tab)
-                
-                Button(action: { selectedTab = tab }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: tab.icon)
-                            .font(.caption)
-                        Text(tab.rawValue)
-                            .font(.subheadline)
-                        if badgeCount > 0 {
-                            Text("\(badgeCount)")
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .background(selectedTab == tab ? Color.white.opacity(0.3) : Color.secondary.opacity(0.2))
-                                .cornerRadius(8)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(selectedTab == tab ? Color.accentColor : Color.clear)
-                    .foregroundColor(selectedTab == tab ? .white : .primary)
-                    .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-            }
-            
-            Spacer()
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(.bar)
-    }
-    
-    private func badgeCount(for tab: DetailTab) -> Int {
-        switch tab {
-        case .overview: return 0
-        case .tools: return session.tools.count
-        case .prompts: return session.prompts.count
-        case .resources: return session.resources.count
-        case .logs: return session.logStore.entries.count
-        }
+        tabContent
     }
     
     @ViewBuilder
@@ -359,8 +316,6 @@ struct ServerDetailView: View {
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(8)
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(6)
             }
             .padding(4)
         }
