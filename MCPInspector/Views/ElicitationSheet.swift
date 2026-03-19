@@ -154,7 +154,6 @@ struct ElicitationSheet: View {
             }
         }
         .padding(10)
-        .background(Color.secondary.opacity(0.05))
         .cornerRadius(8)
     }
     
