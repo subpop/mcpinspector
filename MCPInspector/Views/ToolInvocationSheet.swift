@@ -148,12 +148,6 @@ struct ToolInvocationSheet: View {
             }
             
             Spacer()
-            
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
         }
         .padding()
     }
@@ -216,7 +210,6 @@ struct ToolInvocationSheet: View {
             inputField(for: name, type: type, property: property)
         }
         .padding(8)
-        .background(Color.secondary.opacity(0.05))
         .cornerRadius(6)
     }
     
@@ -316,7 +309,6 @@ struct ToolInvocationSheet: View {
             }
             .frame(maxHeight: 200)
             .padding(8)
-            .background(Color.secondary.opacity(0.05))
             .cornerRadius(6)
         }
     }
