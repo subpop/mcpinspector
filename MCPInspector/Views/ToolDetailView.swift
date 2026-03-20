@@ -102,12 +102,12 @@ struct ToolDetailView: View {
 
             Spacer()
 
-            Picker("Input Mode", selection: $useRawJSON) {
-                Text("Form").tag(false)
-                Text("JSON").tag(true)
+
+            Picker("", selection: $useRawJSON) {
+                Image(systemName: "list.bullet.rectangle").tag(false)
+                Image(systemName: "curlybraces").tag(true)
             }
             .pickerStyle(.segmented)
-            .frame(width: 160)
         }
     }
 
