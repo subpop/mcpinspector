@@ -5,6 +5,11 @@ struct ResourcesView: View {
     @State private var selectedResource: MCPResource?
     @State private var searchText = ""
     
+    // Read state
+    @State private var isReading = false
+    @State private var result: ResourceReadResult?
+    @State private var resultExpanded = true
+    
     private var filteredResources: [MCPResource] {
         if searchText.isEmpty {
             return session.resources
@@ -23,6 +28,9 @@ struct ResourcesView: View {
             
             resourceDetail
                 .frame(minWidth: 400)
+        }
+        .onChange(of: selectedResource) {
+            resetReadState()
         }
     }
     
@@ -78,23 +86,25 @@ struct ResourcesView: View {
     @ViewBuilder
     private var resourceDetail: some View {
         if let resource = selectedResource {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(resource.name)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .textSelection(.enabled)
-                        
-                        if let description = resource.description {
-                            Text(description)
-                                .foregroundColor(.secondary)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Header
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(resource.name)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .textSelection(.enabled)
+                            
+                            if let description = resource.description {
+                                Text(description)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                    }
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 12) {
+                        
+                        Divider()
+                        
+                        // Details section
                         Text("Details")
                             .font(.headline)
                         
@@ -103,11 +113,20 @@ struct ResourcesView: View {
                         if let mimeType = resource.mimeType {
                             detailRow(label: "MIME Type", value: mimeType)
                         }
+                        
+                        // Result section
+                        if let result = result {
+                            Divider()
+                            resultSection(result)
+                        }
                     }
-                    
-                    Spacer()
+                    .padding()
                 }
-                .padding()
+                
+                Divider()
+                
+                // Footer with Read button
+                readFooter
             }
         } else {
             VStack {
@@ -123,6 +142,8 @@ struct ResourcesView: View {
         }
     }
     
+    // MARK: - Detail Row
+    
     private func detailRow(label: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
@@ -133,11 +154,148 @@ struct ResourcesView: View {
                 .font(.system(.body, design: .monospaced))
                 .textSelection(.enabled)
         }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    // MARK: - Read Footer
+    
+    private var readFooter: some View {
+        HStack {
+            if result != nil {
+                Button("Clear Result") {
+                    result = nil
+                }
+                .buttonStyle(.bordered)
+            }
+            
+            Spacer()
+            
+            Button(action: executeResourceRead) {
+                HStack(spacing: 6) {
+                    if isReading {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    Text(isReading ? "Reading..." : "Read")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .keyboardShortcut(.return, modifiers: .command)
+            .disabled(isReading)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+    }
+    
+    // MARK: - Result Section
+    
+    private func resultSection(_ result: ResourceReadResult) -> some View {
+        DisclosureGroup(isExpanded: $resultExpanded) {
+            VStack(alignment: .leading, spacing: 8) {
+                switch result {
+                case .success(let readResult):
+                    ForEach(Array(readResult.contents.enumerated()), id: \.offset) { index, content in
+                        resourceContentView(content, index: index)
+                    }
+                case .error(let message):
+                    Text(message)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.red)
+                        .textSelection(.enabled)
+                }
+            }
+            .padding(.top, 8)
+        } label: {
+            HStack(spacing: 8) {
+                Text("Result")
+                    .font(.headline)
+                
+                resultBadge(result)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func resultBadge(_ result: ResourceReadResult) -> some View {
+        switch result {
+        case .success:
+            Label("Success", systemImage: "checkmark.circle.fill")
+                .foregroundColor(.green)
+                .font(.subheadline)
+        case .error:
+            Label("Error", systemImage: "xmark.circle.fill")
+                .foregroundColor(.red)
+                .font(.subheadline)
+        }
+    }
+    
+    private func resourceContentView(_ content: MCPResourceContent, index: Int) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("[\(index)]")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Text(content.uri)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                
+                if let mimeType = content.mimeType {
+                    Text(mimeType)
+                        .font(.caption2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(4)
+                }
+            }
+            
+            Text(content.displayText)
+                .font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+        }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.secondary.opacity(0.05))
         .cornerRadius(6)
     }
+    
+    // MARK: - Actions
+    
+    private func resetReadState() {
+        isReading = false
+        result = nil
+        resultExpanded = true
+    }
+    
+    private func executeResourceRead() {
+        guard let resource = selectedResource else { return }
+        isReading = true
+        result = nil
+        
+        Task {
+            do {
+                let readResult = try await session.readResource(uri: resource.uri)
+                result = .success(readResult)
+            } catch {
+                result = .error(error.localizedDescription)
+            }
+            isReading = false
+            resultExpanded = true
+        }
+    }
+}
+
+// MARK: - Resource Read Result
+
+enum ResourceReadResult {
+    case success(MCPResourceReadResult)
+    case error(String)
 }
 
 // MARK: - Resource Row

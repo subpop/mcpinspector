@@ -182,6 +182,21 @@ struct MCPPromptArgument: Codable, Hashable {
     let required: Bool?
 }
 
+struct MCPPromptGetParams: Codable {
+    let name: String
+    let arguments: [String: String]?
+}
+
+struct MCPPromptGetResult: Codable {
+    let description: String?
+    let messages: [MCPPromptMessage]
+}
+
+struct MCPPromptMessage: Codable {
+    let role: String
+    let content: MCPContent
+}
+
 // MARK: - Resources
 
 struct MCPResourcesListResult: Codable {
@@ -202,6 +217,30 @@ struct MCPResource: Codable, Identifiable, Hashable {
     
     static func == (lhs: MCPResource, rhs: MCPResource) -> Bool {
         lhs.uri == rhs.uri
+    }
+}
+
+struct MCPResourceReadParams: Codable {
+    let uri: String
+}
+
+struct MCPResourceReadResult: Codable {
+    let contents: [MCPResourceContent]
+}
+
+struct MCPResourceContent: Codable {
+    let uri: String
+    let mimeType: String?
+    let text: String?
+    let blob: String?
+    
+    var displayText: String {
+        if let text = text {
+            return text
+        } else if let blob = blob {
+            return "[Binary data: \(blob.prefix(100))...]"
+        }
+        return "[Unknown content]"
     }
 }
 
@@ -305,6 +344,35 @@ struct MCPMessageBuilder {
         let id = nextId
         nextId += 1
         return JSONRPCRequest(id: id, method: "resources/list")
+    }
+    
+    mutating func buildPromptGet(name: String, arguments: [String: String]) -> JSONRPCRequest {
+        let id = nextId
+        nextId += 1
+        
+        let params = MCPPromptGetParams(
+            name: name,
+            arguments: arguments.isEmpty ? nil : arguments
+        )
+        
+        return JSONRPCRequest(
+            id: id,
+            method: "prompts/get",
+            params: encodeParams(params)
+        )
+    }
+    
+    mutating func buildResourceRead(uri: String) -> JSONRPCRequest {
+        let id = nextId
+        nextId += 1
+        
+        let params = MCPResourceReadParams(uri: uri)
+        
+        return JSONRPCRequest(
+            id: id,
+            method: "resources/read",
+            params: encodeParams(params)
+        )
     }
     
     mutating func buildToolCall(name: String, arguments: [String: Any]) -> JSONRPCRequest {

@@ -237,6 +237,52 @@ class MCPClient: ObservableObject {
         return toolResult
     }
     
+    // MARK: - Prompt Invocation
+    
+    func getPrompt(name: String, arguments: [String: String]) async throws -> MCPPromptGetResult {
+        let request = messageBuilder.buildPromptGet(name: name, arguments: arguments)
+        logRequest(method: "prompts/get (\(name))", request: request)
+        
+        let response = try await transport.send(request)
+        logResponse(method: "prompts/get (\(name))", response: response)
+        
+        if let error = response.error {
+            throw MCPError.serverError(error)
+        }
+        
+        guard let result = response.result else {
+            throw MCPError.unexpectedResponse("No result in prompts/get response")
+        }
+        
+        let resultData = try JSONEncoder().encode(result)
+        let promptResult = try JSONDecoder().decode(MCPPromptGetResult.self, from: resultData)
+        
+        return promptResult
+    }
+    
+    // MARK: - Resource Reading
+    
+    func readResource(uri: String) async throws -> MCPResourceReadResult {
+        let request = messageBuilder.buildResourceRead(uri: uri)
+        logRequest(method: "resources/read (\(uri))", request: request)
+        
+        let response = try await transport.send(request)
+        logResponse(method: "resources/read (\(uri))", response: response)
+        
+        if let error = response.error {
+            throw MCPError.serverError(error)
+        }
+        
+        guard let result = response.result else {
+            throw MCPError.unexpectedResponse("No result in resources/read response")
+        }
+        
+        let resultData = try JSONEncoder().encode(result)
+        let resourceResult = try JSONDecoder().decode(MCPResourceReadResult.self, from: resultData)
+        
+        return resourceResult
+    }
+    
     // MARK: - Logging
     
     private func logRequest(method: String, request: JSONRPCRequest) {

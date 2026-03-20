@@ -104,6 +104,24 @@ class ServerSession: ObservableObject, @MainActor Identifiable {
         return try await client.callTool(name: name, arguments: arguments)
     }
     
+    // MARK: - Prompt Invocation
+    
+    func getPrompt(name: String, arguments: [String: String]) async throws -> MCPPromptGetResult {
+        guard let client = mcpClient else {
+            throw MCPError.notConnected
+        }
+        return try await client.getPrompt(name: name, arguments: arguments)
+    }
+    
+    // MARK: - Resource Reading
+    
+    func readResource(uri: String) async throws -> MCPResourceReadResult {
+        guard let client = mcpClient else {
+            throw MCPError.notConnected
+        }
+        return try await client.readResource(uri: uri)
+    }
+    
     // MARK: - Elicitation
     
     func respondToElicitation(action: MCPElicitationResult.ElicitationAction, content: [String: Any]? = nil) async {
