@@ -47,8 +47,8 @@ fi
 
 echo "🏷️ Extracted version: $VERSION, build: $BUILD"
 
-# Enclosure URL: GitHub Release asset (URL-encode spaces in filename)
-DMG_ENCODED=$(echo "$DMG_BASENAME" | sed 's/ /%20/g')
+# Enclosure URL: GitHub Release asset (GitHub replaces spaces with dots in asset names)
+DMG_ENCODED=$(echo "$DMG_BASENAME" | sed 's/ /./g')
 RELEASE_TAG="v${VERSION}"
 CORRECT_URL="https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/${DMG_ENCODED}"
 
