@@ -88,33 +88,14 @@ struct ResourceDetailView: View {
     // MARK: - Read Footer
 
     private var readFooter: some View {
-        HStack {
-            if result != nil {
-                Button("Clear Result") {
-                    result = nil
-                }
-                .buttonStyle(.bordered)
-            }
-
-            Spacer()
-
-            Button {
-                executeResourceRead()
-            } label: {
-                HStack(spacing: 6) {
-                    if isReading {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                    Text(isReading ? "Reading..." : "Read")
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(isReading)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
+        ActionFooter(
+            actionLabel: "Read",
+            activeLabel: "Reading...",
+            isActive: isReading,
+            hasResult: result != nil,
+            onAction: executeResourceRead,
+            onClear: { result = nil }
+        )
     }
 
     // MARK: - Result Section

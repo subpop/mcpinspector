@@ -112,33 +112,14 @@ struct PromptDetailView: View {
     // MARK: - Run Footer
 
     private var runFooter: some View {
-        HStack {
-            if result != nil {
-                Button("Clear Result") {
-                    result = nil
-                }
-                .buttonStyle(.bordered)
-            }
-
-            Spacer()
-
-            Button {
-                executePromptGet()
-            } label: {
-                HStack(spacing: 6) {
-                    if isExecuting {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                    Text(isExecuting ? "Running..." : "Run")
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(isExecuting)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
+        ActionFooter(
+            actionLabel: "Run",
+            activeLabel: "Running...",
+            isActive: isExecuting,
+            hasResult: result != nil,
+            onAction: executePromptGet,
+            onClear: { result = nil }
+        )
     }
 
     // MARK: - Result Section
