@@ -26,6 +26,17 @@ struct ServerDetailView: View {
         }
     }
     
+    private var availableTabs: [DetailTab] {
+        DetailTab.allCases.filter { tab in
+            switch tab {
+            case .tools: return !session.tools.isEmpty
+            case .prompts: return !session.prompts.isEmpty
+            case .resources: return !session.resources.isEmpty
+            case .overview, .logs: return true
+            }
+        }
+    }
+    
     var body: some View {
         Group {
             switch session.connectionState {
@@ -44,7 +55,7 @@ struct ServerDetailView: View {
             if session.connectionState == .connected {
                 ToolbarItem(placement: .principal) {
                     Picker("Tab", selection: $selectedTab) {
-                        ForEach(DetailTab.allCases) { tab in
+                        ForEach(availableTabs) { tab in
                             Label(tab.rawValue, systemImage: tab.icon).tag(tab)
                         }
                     }
@@ -53,6 +64,11 @@ struct ServerDetailView: View {
             }
             ToolbarItemGroup(placement: .primaryAction) {
                 toolbarButtons
+            }
+        }
+        .onChange(of: availableTabs) {
+            if !availableTabs.contains(selectedTab) {
+                selectedTab = .overview
             }
         }
     }
