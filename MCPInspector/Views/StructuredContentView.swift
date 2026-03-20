@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import SwiftUI
 
 /// A view that recursively renders a `JSONValue` as a structured key-value tree.

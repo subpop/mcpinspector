@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import SwiftUI
 
 /// A detail view for inspecting and reading an MCP resource.

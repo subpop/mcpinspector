@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import Foundation
 
 // MARK: - JSON-RPC 2.0 Protocol Types

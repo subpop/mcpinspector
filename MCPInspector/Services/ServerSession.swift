@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import Foundation
 import Combine
 
@@ -154,4 +157,3 @@ class ServerSession: ObservableObject, @MainActor Identifiable {
         pendingElicitation = nil
     }
 }
-

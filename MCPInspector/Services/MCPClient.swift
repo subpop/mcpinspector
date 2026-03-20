@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import Foundation
 
 /// MCP Client that communicates with an MCP server over stdio

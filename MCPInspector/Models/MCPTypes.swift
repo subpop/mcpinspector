@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import Foundation
 
 // Note: The main MCP types (MCPTool, MCPPrompt, MCPResource, MCPServerInfo, etc.)

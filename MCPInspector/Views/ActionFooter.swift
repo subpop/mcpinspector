@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import SwiftUI
 
 /// A reusable footer bar with a primary action button and an optional "Clear Result" button.

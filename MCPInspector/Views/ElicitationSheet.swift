@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Link Dupont
+// SPDX-License-Identifier: MIT
+
 import SwiftUI
 
 /// A sheet that presents a form for an elicitation request from the server.
