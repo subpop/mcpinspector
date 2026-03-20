@@ -5,12 +5,6 @@ struct PromptsView: View {
     @State private var selectedPrompt: MCPPrompt?
     @State private var searchText = ""
     
-    // Invocation state
-    @State private var argumentValues: [String: String] = [:]
-    @State private var isExecuting = false
-    @State private var result: PromptCallResult?
-    @State private var resultExpanded = true
-    
     private var filteredPrompts: [MCPPrompt] {
         if searchText.isEmpty {
             return session.prompts
@@ -28,9 +22,6 @@ struct PromptsView: View {
 
             promptDetail
                 .frame(minWidth: 280)
-        }
-        .onChange(of: selectedPrompt) {
-            resetInvocationState()
         }
     }
     
@@ -60,238 +51,13 @@ struct PromptsView: View {
     @ViewBuilder
     private var promptDetail: some View {
         if let prompt = selectedPrompt {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Header
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(prompt.name)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .textSelection(.enabled)
-                            
-                            if let description = prompt.description {
-                                Text(description)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        // Arguments section
-                        if let arguments = prompt.arguments, !arguments.isEmpty {
-                            Text("Arguments")
-                                .font(.headline)
-                            
-                            ForEach(arguments, id: \.name) { arg in
-                                argumentField(argument: arg)
-                            }
-                        } else {
-                            Text("This prompt has no arguments.")
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Result section
-                        if let result = result {
-                            Divider()
-                            resultSection(result)
-                        }
-                    }
-                    .padding()
-                }
-                
-                Divider()
-                
-                // Footer with Run button
-                runFooter
+            PromptDetailView(prompt: prompt) { name, arguments in
+                try await session.getPrompt(name: name, arguments: arguments)
             }
         } else {
             ContentUnavailableView("Select a prompt",
                                    systemImage: "text.bubble")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-    
-    // MARK: - Argument Field
-    
-    private func argumentField(argument: MCPPromptArgument) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Text(argument.name)
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                
-                if argument.required == true {
-                    Text("required")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                } else {
-                    Text("optional")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            if let description = argument.description {
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            TextField("Enter value", text: argumentBinding(for: argument.name))
-                .textFieldStyle(.roundedBorder)
-                .font(.system(.body, design: .monospaced))
-        }
-        .padding(10)
-        .background(Color.secondary.opacity(0.05))
-        .cornerRadius(8)
-    }
-    
-    // MARK: - Run Footer
-    
-    private var runFooter: some View {
-        HStack {
-            if result != nil {
-                Button("Clear Result") {
-                    result = nil
-                }
-                .buttonStyle(.bordered)
-            }
-            
-            Spacer()
-            
-            Button {
-                executePromptGet()
-            } label: {
-                HStack(spacing: 6) {
-                    if isExecuting {
-                        ProgressView()
-                            .controlSize(.small)
-                    }
-                    Text(isExecuting ? "Running..." : "Run")
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(isExecuting)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-    }
-    
-    // MARK: - Result Section
-    
-    private func resultSection(_ result: PromptCallResult) -> some View {
-        DisclosureGroup(isExpanded: $resultExpanded) {
-            VStack(alignment: .leading, spacing: 12) {
-                switch result {
-                case .success(let promptResult):
-                    if let description = promptResult.description {
-                        Text(description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    ForEach(Array(promptResult.messages.enumerated()), id: \.offset) { index, message in
-                        promptMessageView(message, index: index)
-                    }
-                case .error(let message):
-                    Text(message)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.red)
-                        .textSelection(.enabled)
-                }
-            }
-            .padding(.top, 8)
-        } label: {
-            HStack(spacing: 8) {
-                Text("Result")
-                    .font(.headline)
-                
-                resultBadge(result)
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private func resultBadge(_ result: PromptCallResult) -> some View {
-        switch result {
-        case .success:
-            Label("Success", systemImage: "checkmark.circle.fill")
-                .foregroundColor(.green)
-                .font(.subheadline)
-        case .error:
-            Label("Error", systemImage: "xmark.circle.fill")
-                .foregroundColor(.red)
-                .font(.subheadline)
-        }
-    }
-    
-    private func promptMessageView(_ message: MCPPromptMessage, index: Int) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("[\(index)] \(message.role)")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-                
-                Text(message.content.type)
-                    .font(.caption2)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 2)
-                    .background(Color.secondary.opacity(0.2))
-                    .cornerRadius(4)
-            }
-            
-            Text(message.content.displayText)
-                .font(.system(.caption, design: .monospaced))
-                .textSelection(.enabled)
-        }
-        .padding(8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.05))
-        .cornerRadius(6)
-    }
-    
-    // MARK: - Bindings
-    
-    private func argumentBinding(for name: String) -> Binding<String> {
-        Binding(
-            get: { argumentValues[name] ?? "" },
-            set: { argumentValues[name] = $0 }
-        )
-    }
-    
-    // MARK: - Actions
-    
-    private func resetInvocationState() {
-        argumentValues = [:]
-        isExecuting = false
-        result = nil
-        resultExpanded = true
-        
-        if let prompt = selectedPrompt, let arguments = prompt.arguments {
-            for arg in arguments {
-                argumentValues[arg.name] = ""
-            }
-        }
-    }
-    
-    private func executePromptGet() {
-        guard let prompt = selectedPrompt else { return }
-        isExecuting = true
-        result = nil
-        
-        Task {
-            do {
-                let args = argumentValues.filter { !$0.value.isEmpty }
-                let promptResult = try await session.getPrompt(name: prompt.name, arguments: args)
-                result = .success(promptResult)
-            } catch {
-                result = .error(error.localizedDescription)
-            }
-            isExecuting = false
-            resultExpanded = true
         }
     }
 }
