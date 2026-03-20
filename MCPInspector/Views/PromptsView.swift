@@ -24,10 +24,10 @@ struct PromptsView: View {
     var body: some View {
         HSplitView {
             promptsList
-                .frame(minWidth: 250, maxWidth: 350)
-            
+                .frame(width: 280)
+
             promptDetail
-                .frame(minWidth: 400)
+                .frame(minWidth: 280)
         }
         .onChange(of: selectedPrompt) {
             resetInvocationState()

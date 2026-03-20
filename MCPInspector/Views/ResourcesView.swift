@@ -24,10 +24,10 @@ struct ResourcesView: View {
     var body: some View {
         HSplitView {
             resourcesList
-                .frame(minWidth: 250, maxWidth: 350)
-            
+                .frame(width: 280)
+
             resourceDetail
-                .frame(minWidth: 400)
+                .frame(minWidth: 280)
         }
         .onChange(of: selectedResource) {
             resetReadState()

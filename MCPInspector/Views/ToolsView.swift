@@ -26,10 +26,10 @@ struct ToolsView: View {
     var body: some View {
         HSplitView {
             toolsList
-                .frame(minWidth: 250, maxWidth: 350)
-            
+                .frame(width: 280)
+
             toolDetail
-                .frame(minWidth: 400)
+                .frame(minWidth: 280)
         }
         .onChange(of: selectedTool) {
             resetInvocationState()
