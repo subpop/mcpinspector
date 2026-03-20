@@ -109,15 +109,8 @@ struct ResourcesView: View {
                 readFooter
             }
         } else {
-            VStack {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                
-                Text("Select a resource")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-            }
+            ContentUnavailableView("Select a resource",
+                                   systemImage: "doc.text")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }

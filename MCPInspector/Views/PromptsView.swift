@@ -112,15 +112,8 @@ struct PromptsView: View {
                 runFooter
             }
         } else {
-            VStack {
-                Image(systemName: "text.bubble")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                
-                Text("Select a prompt")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-            }
+            ContentUnavailableView("Select a prompt",
+                                   systemImage: "text.bubble")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }

@@ -134,15 +134,8 @@ struct ToolsView: View {
                 runFooter
             }
         } else {
-            VStack {
-                Image(systemName: "wrench.and.screwdriver")
-                    .font(.system(size: 48))
-                    .foregroundColor(.secondary)
-                
-                Text("Select a tool")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-            }
+            ContentUnavailableView("Select a tool",
+                                   systemImage: "wrench.and.screwdriver")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
