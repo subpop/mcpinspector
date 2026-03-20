@@ -38,27 +38,21 @@ struct ResourcesView: View {
     
     private var resourcesList: some View {
         List(selection: $selectedResource) {
-            if filteredResources.isEmpty {
-                if session.resources.isEmpty {
-                    Text("No resources available")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    Text("No matching resources")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                }
-            } else {
-                ForEach(filteredResources) { resource in
-                    ResourceRow(resource: resource, isSelected: selectedResource?.id == resource.id)
-                        .tag(resource)
-                }
+            ForEach(filteredResources) { resource in
+                ResourceRow(resource: resource, isSelected: selectedResource?.id == resource.id)
+                    .tag(resource)
             }
         }
         .listStyle(.inset)
         .searchable(text: $searchText, prompt: "Filter resources...")
+        .overlay {
+            if filteredResources.isEmpty {
+                ContentUnavailableView(
+                    session.resources.isEmpty ? "No resources available" : "No matching resources",
+                    systemImage: "doc.text"
+                )
+            }
+        }
     }
     
     // MARK: - Resource Detail
@@ -146,7 +140,9 @@ struct ResourcesView: View {
             
             Spacer()
             
-            Button(action: executeResourceRead) {
+            Button {
+                executeResourceRead()
+            } label: {
                 HStack(spacing: 6) {
                     if isReading {
                         ProgressView()
@@ -324,6 +320,7 @@ struct ResourceRow: View {
     }
 }
 
-#Preview {
+#Preview("Resources") {
     ResourcesView(session: ServerSession(configuration: .sample))
+        .frame(width: 800, height: 500)
 }

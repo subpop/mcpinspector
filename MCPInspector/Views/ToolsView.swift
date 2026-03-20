@@ -43,27 +43,21 @@ struct ToolsView: View {
     
     private var toolsList: some View {
         List(selection: $selectedTool) {
-            if filteredTools.isEmpty {
-                if session.tools.isEmpty {
-                    Text("No tools available")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    Text("No matching tools")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                }
-            } else {
-                ForEach(filteredTools) { tool in
-                    ToolRow(tool: tool, isSelected: selectedTool?.id == tool.id)
-                        .tag(tool)
-                }
+            ForEach(filteredTools) { tool in
+                ToolRow(tool: tool, isSelected: selectedTool?.id == tool.id)
+                    .tag(tool)
             }
         }
         .listStyle(.inset)
         .searchable(text: $searchText, prompt: "Filter tools...")
+        .overlay {
+            if filteredTools.isEmpty {
+                ContentUnavailableView(
+                    session.tools.isEmpty ? "No tools available" : "No matching tools",
+                    systemImage: "wrench.and.screwdriver"
+                )
+            }
+        }
     }
     
     // MARK: - Tool Detail
@@ -277,7 +271,9 @@ struct ToolsView: View {
             
             Spacer()
             
-            Button(action: executeToolCall) {
+            Button {
+                executeToolCall()
+            } label: {
                 HStack(spacing: 6) {
                     if isExecuting {
                         ProgressView()
@@ -552,6 +548,9 @@ struct ToolRow: View {
     }
 }
 
-#Preview {
+// Note: Populating sample tools in the preview causes a SwiftUI crash
+// in OutlineListCoordinator (rdar://FB...). Run the app to test with data.
+#Preview("Tools") {
     ToolsView(session: ServerSession(configuration: .sample))
+        .frame(width: 800, height: 500)
 }

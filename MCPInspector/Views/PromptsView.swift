@@ -38,27 +38,21 @@ struct PromptsView: View {
     
     private var promptsList: some View {
         List(selection: $selectedPrompt) {
-            if filteredPrompts.isEmpty {
-                if session.prompts.isEmpty {
-                    Text("No prompts available")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    Text("No matching prompts")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                }
-            } else {
-                ForEach(filteredPrompts) { prompt in
-                    PromptRow(prompt: prompt, isSelected: selectedPrompt?.id == prompt.id)
-                        .tag(prompt)
-                }
+            ForEach(filteredPrompts) { prompt in
+                PromptRow(prompt: prompt, isSelected: selectedPrompt?.id == prompt.id)
+                    .tag(prompt)
             }
         }
         .listStyle(.inset)
         .searchable(text: $searchText, prompt: "Filter prompts...")
+        .overlay {
+            if filteredPrompts.isEmpty {
+                ContentUnavailableView(
+                    session.prompts.isEmpty ? "No prompts available" : "No matching prompts",
+                    systemImage: "text.bubble"
+                )
+            }
+        }
     }
     
     // MARK: - Prompt Detail
@@ -166,7 +160,9 @@ struct PromptsView: View {
             
             Spacer()
             
-            Button(action: executePromptGet) {
+            Button {
+                executePromptGet()
+            } label: {
                 HStack(spacing: 6) {
                     if isExecuting {
                         ProgressView()
@@ -341,6 +337,7 @@ struct PromptRow: View {
     }
 }
 
-#Preview {
+#Preview("Prompts") {
     PromptsView(session: ServerSession(configuration: .sample))
+        .frame(width: 800, height: 500)
 }
