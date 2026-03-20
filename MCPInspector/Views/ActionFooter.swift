@@ -18,10 +18,10 @@ struct ActionFooter: View {
     let hasResult: Bool
 
     /// Called when the user taps the primary action button.
-    let onAction: () -> Void
+    let onAction: @MainActor () -> Void
 
     /// Called when the user taps "Clear Result".
-    let onClear: () -> Void
+    let onClear: @MainActor () -> Void
 
     var body: some View {
         HStack {

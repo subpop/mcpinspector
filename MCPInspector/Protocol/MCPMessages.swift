@@ -132,6 +132,7 @@ struct MCPTool: Codable, Identifiable, Hashable {
     let name: String
     let description: String?
     let inputSchema: JSONValue?
+    let outputSchema: JSONValue?
     
     var id: String { name }
     
@@ -151,6 +152,7 @@ struct MCPToolCallParams: Codable {
 
 struct MCPToolResult: Codable {
     let content: [MCPContent]
+    let structuredContent: JSONValue?
     let isError: Bool?
 }
 

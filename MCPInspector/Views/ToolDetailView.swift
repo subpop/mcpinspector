@@ -11,6 +11,9 @@ struct ToolDetailView: View {
     /// Called when the user taps "Run". Returns the tool result asynchronously.
     var onRunTool: @MainActor (_ name: String, _ arguments: [String: Any]) async throws -> MCPToolResult
 
+    /// Optional pre-populated result used by previews.
+    var initialResult: ToolCallResult? = nil
+
     // MARK: - State
 
     @State private var parameterValues: [String: ParameterValue] = [:]
@@ -19,6 +22,22 @@ struct ToolDetailView: View {
     @State private var rawJSON = "{}"
     @State private var useRawJSON = false
     @State private var resultExpanded = true
+    @State private var resultViewMode: ResultViewMode = .content
+
+    /// Controls which view is shown in the result section when structured output is available.
+    private enum ResultViewMode: String, CaseIterable {
+        case content = "Content"
+        case structured = "Structured"
+        case raw = "Raw JSON"
+
+        var imageName: String {
+            switch self {
+            case .content: "doc.text"
+            case .structured: "list.bullet.indent"
+            case .raw: "curlybraces"
+            }
+        }
+    }
 
     // MARK: - Body
 
@@ -71,6 +90,22 @@ struct ToolDetailView: View {
                             .foregroundColor(.secondary)
                     }
 
+                    // Output schema reference
+                    if let outputSchema = tool.outputSchema {
+                        DisclosureGroup("Output Schema") {
+                            ScrollView(.horizontal, showsIndicators: true) {
+                                Text(outputSchema.prettyPrinted())
+                                    .font(.system(.caption, design: .monospaced))
+                                    .textSelection(.enabled)
+                                    .padding(8)
+                            }
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(6)
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    }
+
                     // Result section
                     if let result = result {
                         Divider()
@@ -87,6 +122,12 @@ struct ToolDetailView: View {
         }
         .onAppear {
             initializeParameters(for: tool)
+            if let initial = initialResult {
+                result = initial
+                if case .success(let r) = initial, r.structuredContent != nil {
+                    resultViewMode = .structured
+                }
+            }
         }
         .onChange(of: tool) {
             resetInvocationState()
@@ -237,9 +278,8 @@ struct ToolDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 switch result {
                 case .success(let toolResult):
-                    ForEach(Array(toolResult.content.enumerated()), id: \.offset) { index, content in
-                        resultContentView(content, index: index)
-                    }
+                    resultViewModePicker(toolResult)
+                    resultBody(toolResult)
                 case .error(let message):
                     Text(message)
                         .font(.system(.body, design: .monospaced))
@@ -247,6 +287,7 @@ struct ToolDetailView: View {
                         .textSelection(.enabled)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 8)
         } label: {
             HStack(spacing: 8) {
@@ -254,6 +295,43 @@ struct ToolDetailView: View {
                     .font(.headline)
 
                 resultBadge(result)
+            }
+        }
+    }
+
+    /// Shows a segmented picker to switch between Content / Structured / Raw JSON views.
+    /// Only displayed when the result contains structured content.
+    @ViewBuilder
+    private func resultViewModePicker(_ toolResult: MCPToolResult) -> some View {
+        if toolResult.structuredContent != nil {
+            Picker("", selection: $resultViewMode) {
+                ForEach(ResultViewMode.allCases, id: \.self) { mode in
+                    Image(systemName: mode.imageName).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    /// Renders the appropriate result body based on the selected view mode.
+    @ViewBuilder
+    private func resultBody(_ toolResult: MCPToolResult) -> some View {
+        let hasStructured = toolResult.structuredContent != nil
+
+        switch hasStructured ? resultViewMode : .content {
+        case .content:
+            ForEach(Array(toolResult.content.enumerated()), id: \.offset) { index, content in
+                resultContentView(content, index: index)
+            }
+
+        case .structured:
+            if let structured = toolResult.structuredContent {
+                structuredContentSection(structured)
+            }
+
+        case .raw:
+            if let structured = toolResult.structuredContent {
+                rawJSONResultView(structured)
             }
         }
     }
@@ -278,6 +356,8 @@ struct ToolDetailView: View {
         }
     }
 
+    // MARK: - Content View (text/image/resource items)
+
     private func resultContentView(_ content: MCPContent, index: Int) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -299,6 +379,46 @@ struct ToolDetailView: View {
             Text(content.displayText)
                 .font(.system(.caption, design: .monospaced))
                 .textSelection(.enabled)
+        }
+    }
+
+    // MARK: - Structured Content View
+
+    private func structuredContentSection(_ value: JSONValue) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Label("Structured Output", systemImage: "tree")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+
+            StructuredContentView(value)
+                .padding(8)
+                .background(Color.secondary.opacity(0.05))
+                .cornerRadius(6)
+        }
+    }
+
+    // MARK: - Raw JSON Result View
+
+    private func rawJSONResultView(_ value: JSONValue) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Label("Raw JSON", systemImage: "curlybraces")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(value.prettyPrinted())
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .padding(8)
+            }
+            .background(Color.secondary.opacity(0.05))
+            .cornerRadius(6)
         }
     }
 
@@ -361,6 +481,7 @@ struct ToolDetailView: View {
         isExecuting = false
         result = nil
         resultExpanded = true
+        resultViewMode = .content
         initializeParameters(for: tool)
     }
 
@@ -394,6 +515,8 @@ struct ToolDetailView: View {
                 let arguments = buildArguments()
                 let toolResult = try await onRunTool(tool.name, arguments)
                 result = .success(toolResult)
+                // Default to structured view when structured output is present
+                resultViewMode = toolResult.structuredContent != nil ? .structured : .content
             } catch {
                 result = .error(error.localizedDescription)
             }
@@ -448,11 +571,13 @@ private let sampleWeatherSchema: JSONValue = .object([
         tool: MCPTool(
             name: "get_weather",
             description: "Get the current weather for a given location.",
-            inputSchema: sampleWeatherSchema
+            inputSchema: sampleWeatherSchema,
+            outputSchema: nil
         ),
         onRunTool: { _, _ in
             MCPToolResult(
                 content: [MCPContent(type: "text", text: "72\u{00B0}F, sunny", data: nil, mimeType: nil)],
+                structuredContent: nil,
                 isError: nil
             )
         }
@@ -465,14 +590,70 @@ private let sampleWeatherSchema: JSONValue = .object([
         tool: MCPTool(
             name: "list_files",
             description: "List all files in the current working directory.",
-            inputSchema: nil
+            inputSchema: nil,
+            outputSchema: nil
         ),
         onRunTool: { _, _ in
             MCPToolResult(
                 content: [MCPContent(type: "text", text: "file1.txt\nfile2.txt\nfile3.txt", data: nil, mimeType: nil)],
+                structuredContent: nil,
                 isError: nil
             )
         }
     )
     .frame(width: 500, height: 400)
+}
+
+private let sampleOutputSchema: JSONValue = .object([
+    "type": .string("object"),
+    "properties": .object([
+        "temperature": .object(["type": .string("number")]),
+        "unit": .object(["type": .string("string")]),
+        "conditions": .object(["type": .string("string")]),
+        "forecast": .object([
+            "type": .string("array"),
+            "items": .object(["type": .string("object")])
+        ])
+    ])
+])
+
+private let sampleMondayForecast: JSONValue = .object([
+    "day": .string("Monday"),
+    "high": .int(75),
+    "low": .int(58),
+    "conditions": .string("partly cloudy")
+])
+
+private let sampleTuesdayForecast: JSONValue = .object([
+    "day": .string("Tuesday"),
+    "high": .int(68),
+    "low": .int(55),
+    "conditions": .string("rain")
+])
+
+private let sampleStructuredContent: JSONValue = .object([
+    "temperature": .double(72.0),
+    "unit": .string("fahrenheit"),
+    "conditions": .string("sunny"),
+    "forecast": .array([sampleMondayForecast, sampleTuesdayForecast])
+])
+
+private let sampleStructuredResult = MCPToolResult(
+    content: [MCPContent(type: "text", text: "72F, sunny", data: nil, mimeType: nil)],
+    structuredContent: sampleStructuredContent,
+    isError: nil
+)
+
+#Preview("Tool with structured output") {
+    ToolDetailView(
+        tool: MCPTool(
+            name: "get_weather_structured",
+            description: "Get weather with structured output.",
+            inputSchema: sampleWeatherSchema,
+            outputSchema: sampleOutputSchema
+        ),
+        onRunTool: { _, _ in sampleStructuredResult },
+        initialResult: .success(sampleStructuredResult)
+    )
+    .frame(width: 500, height: 700)
 }
