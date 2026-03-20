@@ -37,48 +37,28 @@ struct PromptsView: View {
     // MARK: - Prompts List
     
     private var promptsList: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Filter prompts...", text: $searchText)
-                    .textFieldStyle(.plain)
-                
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(8)
-            .background(Color.secondary.opacity(0.1))
-            
-            Divider()
-            
-            List(selection: $selectedPrompt) {
-                if filteredPrompts.isEmpty {
-                    if session.prompts.isEmpty {
-                        Text("No prompts available")
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else {
-                        Text("No matching prompts")
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    }
+        List(selection: $selectedPrompt) {
+            if filteredPrompts.isEmpty {
+                if session.prompts.isEmpty {
+                    Text("No prompts available")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                 } else {
-                    ForEach(filteredPrompts) { prompt in
-                        PromptRow(prompt: prompt, isSelected: selectedPrompt?.id == prompt.id)
-                            .tag(prompt)
-                    }
+                    Text("No matching prompts")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
+            } else {
+                ForEach(filteredPrompts) { prompt in
+                    PromptRow(prompt: prompt, isSelected: selectedPrompt?.id == prompt.id)
+                        .tag(prompt)
                 }
             }
-            .listStyle(.inset)
         }
+        .listStyle(.inset)
+        .searchable(text: $searchText, prompt: "Filter prompts...")
     }
     
     // MARK: - Prompt Detail

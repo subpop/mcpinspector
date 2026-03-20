@@ -42,48 +42,28 @@ struct ToolsView: View {
     // MARK: - Tools List
     
     private var toolsList: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Filter tools...", text: $searchText)
-                    .textFieldStyle(.plain)
-                
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(8)
-            .background(Color.secondary.opacity(0.1))
-            
-            Divider()
-            
-            List(selection: $selectedTool) {
-                if filteredTools.isEmpty {
-                    if session.tools.isEmpty {
-                        Text("No tools available")
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else {
-                        Text("No matching tools")
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    }
+        List(selection: $selectedTool) {
+            if filteredTools.isEmpty {
+                if session.tools.isEmpty {
+                    Text("No tools available")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                 } else {
-                    ForEach(filteredTools) { tool in
-                        ToolRow(tool: tool, isSelected: selectedTool?.id == tool.id)
-                            .tag(tool)
-                    }
+                    Text("No matching tools")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                }
+            } else {
+                ForEach(filteredTools) { tool in
+                    ToolRow(tool: tool, isSelected: selectedTool?.id == tool.id)
+                        .tag(tool)
                 }
             }
-            .listStyle(.inset)
         }
+        .listStyle(.inset)
+        .searchable(text: $searchText, prompt: "Filter tools...")
     }
     
     // MARK: - Tool Detail
