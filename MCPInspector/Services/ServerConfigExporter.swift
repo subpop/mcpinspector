@@ -12,6 +12,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     case codex = "Codex"
     case geminiCLI = "Gemini CLI"
     case opencode = "OpenCode"
+    case goose = "Goose"
     case genericJSON = "Generic JSON"
 
     var id: String { rawValue }
@@ -19,6 +20,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     var fileExtension: String {
         switch self {
         case .codex: return "toml"
+        case .goose: return "yaml"
         default: return "json"
         }
     }
@@ -26,6 +28,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     var contentType: UTType {
         switch self {
         case .codex: return .init(filenameExtension: "toml") ?? .plainText
+        case .goose: return .init(filenameExtension: "yaml") ?? .plainText
         default: return .json
         }
     }
@@ -38,6 +41,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .codex: return "config.toml"
         case .geminiCLI: return "settings.json"
         case .opencode: return "opencode.json"
+        case .goose: return "config.yaml"
         case .genericJSON: return "mcp-servers.json"
         }
     }
@@ -69,6 +73,8 @@ extension ServerConfiguration {
             return exportedAsGeminiCLI()
         case .opencode:
             return exportedAsOpenCode()
+        case .goose:
+            return exportedAsGoose()
         case .genericJSON:
             return exportedAsGenericJSON()
         }
@@ -235,6 +241,37 @@ extension ServerConfiguration {
         return renderJSON(root)
     }
 
+    // MARK: - Goose (YAML)
+
+    /// Goose uses YAML format with extensions in `config.yaml`.
+    /// File: `~/.config/goose/config.yaml`
+    private func exportedAsGoose() -> String {
+        var lines: [String] = []
+        let sanitizedName = name.replacingOccurrences(of: " ", with: "-").lowercased()
+        lines.append("extensions:")
+        lines.append("  \(sanitizedName):")
+        lines.append("    name: \(yamlQuote(name))")
+        lines.append("    type: stdio")
+        lines.append("    enabled: true")
+        lines.append("    cmd: \(yamlQuote(command))")
+
+        if !arguments.isEmpty {
+            let args = arguments.map { yamlQuote($0) }.joined(separator: ", ")
+            lines.append("    args: [\(args)]")
+        }
+
+        if !environmentVariables.isEmpty {
+            lines.append("    envs:")
+            for (key, value) in environmentVariables.sorted(by: { $0.key < $1.key }) {
+                lines.append("      \(key): \(yamlQuote(value))")
+            }
+        }
+
+        lines.append("    timeout: 300")
+        lines.append("")
+        return lines.joined(separator: "\n")
+    }
+
     // MARK: - Generic JSON
 
     /// A generic format with all fields.
@@ -318,6 +355,45 @@ extension ServerConfiguration {
             return s
         }
         return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    // MARK: - YAML Helpers
+
+    /// A simple helper function that ensures YAML content is properly quoted.
+    private func yamlQuote(_ s: String) -> String {
+        let needsQuoting = s.isEmpty
+            || s.contains(":")
+            || s.contains("#")
+            || s.contains("'")
+            || s.contains("\"")
+            || s.contains("{")
+            || s.contains("}")
+            || s.contains("[")
+            || s.contains("]")
+            || s.contains(",")
+            || s.contains("&")
+            || s.contains("*")
+            || s.contains("?")
+            || s.contains("|")
+            || s.contains("-")
+            || s.contains("<")
+            || s.contains(">")
+            || s.contains("=")
+            || s.contains("!")
+            || s.contains("%")
+            || s.contains("@")
+            || s.contains("`")
+            || s.hasPrefix(" ")
+            || s.hasSuffix(" ")
+            || s == "true" || s == "false"
+            || s == "null" || s == "yes" || s == "no"
+        if needsQuoting {
+            let escaped = s
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            return "\"\(escaped)\""
+        }
+        return s
     }
 
     // MARK: - TOML Helpers
