@@ -11,6 +11,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     case claudeCode = "Claude Code"
     case codex = "Codex"
     case geminiCLI = "Gemini CLI"
+    case opencode = "OpenCode"
     case genericJSON = "Generic JSON"
 
     var id: String { rawValue }
@@ -36,6 +37,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .claudeCode: return ".mcp.json"
         case .codex: return "config.toml"
         case .geminiCLI: return "settings.json"
+        case .opencode: return "opencode.json"
         case .genericJSON: return "mcp-servers.json"
         }
     }
@@ -65,6 +67,8 @@ extension ServerConfiguration {
             return exportedAsCodex()
         case .geminiCLI:
             return exportedAsGeminiCLI()
+        case .opencode:
+            return exportedAsOpenCode()
         case .genericJSON:
             return exportedAsGenericJSON()
         }
@@ -202,6 +206,35 @@ extension ServerConfiguration {
         return renderJSON(root)
     }
 
+    // MARK: - OpenCode
+
+    /// OpenCode uses `"mcp"` inside `opencode.json`
+    /// File: `opencode.json`
+    private func exportedAsOpenCode() -> String {
+        var server: OrderedDict = [
+            ("type", .string("local")),
+            ("enabled", .bool(true)),
+        ]
+
+        var command = [self.command]
+        if !arguments.isEmpty {
+            command = command + arguments
+        }
+        server.append(("command", .array(command.map { .string($0) })))
+
+        if !environmentVariables.isEmpty {
+            server.append(("environment", .object(environmentVariables.sorted(by: { $0.key < $1.key }).map { ($0.key, JSONValue.string($0.value)) })))
+        }
+
+        let root: OrderedDict = [
+            ("$schema", .string("https://opencode.ai/config.json")),
+            ("mcp", .object([
+                (name, .object(server)),
+            ])),
+        ]
+        return renderJSON(root)
+    }
+
     // MARK: - Generic JSON
 
     /// A generic format with all fields.
@@ -303,6 +336,7 @@ extension ServerConfiguration {
         case string(String)
         case array([JSONValue])
         case object(OrderedDict)
+        case bool(Bool)
     }
 
     private typealias OrderedDict = [(String, JSONValue)]
@@ -330,6 +364,8 @@ extension ServerConfiguration {
                 "\(innerPad)\"\(escapeJSON(key))\": \(renderValue(val, indent: indent + 1))"
             }
             return "{\n\(rendered.joined(separator: ",\n"))\n\(pad)}"
+        case .bool(let b):
+            return b ? "true" : "false"
         }
     }
 
